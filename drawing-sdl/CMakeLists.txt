@@ -2,15 +2,15 @@ cmake_minimum_required(VERSION 3.25)
 
 # Dynamically name the project after the folder
 get_filename_component(PROJECT_NAME ${CMAKE_SOURCE_DIR} NAME)
-project(${PROJECT_NAME}
-    VERSION 1.0.0
-    DESCRIPTION "Modern C++ Project"
-    LANGUAGES CXX
-)
+project(
+  ${PROJECT_NAME}
+  VERSION 1.0.0
+  DESCRIPTION "Modern C++ Project"
+  LANGUAGES CXX C)
 
 # Set default build type
 if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Debug)
+  set(CMAKE_BUILD_TYPE Debug)
 endif()
 
 # Enable compile_commands.json for LSP support
@@ -23,143 +23,158 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Compiler-specific options
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-    add_compile_options(
-        -Wall -Wextra -Wpedantic
-        -Wconversion -Wsign-conversion
-        -Wunused -Wuninitialized
-        -Wshadow -Wformat=2
-    )
+  add_compile_options(
+    -Wall
+    -Wextra
+    -Wpedantic
+    -Wconversion
+    -Wsign-conversion
+    -Wunused
+    -Wuninitialized
+    -Wshadow
+    -Wformat=2)
 
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        add_compile_options(-g -O0 -Werror -fsanitize=address,undefined)
-        add_link_options(-fsanitize=address,undefined)
-    else()
-        add_compile_options(-O3 -DNDEBUG)
-    endif()
+  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_options(-g -O0 -Werror -fsanitize=address,undefined)
+    add_link_options(-fsanitize=address,undefined)
+  else()
+    add_compile_options(-O3 -DNDEBUG)
+  endif()
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-    add_compile_options(
-        -Wall -Wextra -Wpedantic
-        -Wconversion -Wsign-conversion
-        -Wunused -Wuninitialized
-        -Wshadow -Wformat=2
-    )
+  add_compile_options(
+    -Wall
+    -Wextra
+    -Wpedantic
+    -Wconversion
+    -Wsign-conversion
+    -Wunused
+    -Wuninitialized
+    -Wshadow
+    -Wformat=2)
 
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        add_compile_options(-g -O0 -Werror -fsanitize=address,undefined)
-        add_link_options(-fsanitize=address,undefined)
-    else()
-        add_compile_options(-O3 -DNDEBUG)
-    endif()
+  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_options(-g -O0 -Werror -fsanitize=address,undefined)
+    add_link_options(-fsanitize=address,undefined)
+  else()
+    add_compile_options(-O3 -DNDEBUG)
+  endif()
 elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
-    add_compile_options(/W4 /permissive-)
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        add_compile_options(/Od /RTC1 /WX)
-    else()
-        add_compile_options(/O2 /DNDEBUG)
-    endif()
+  add_compile_options(/W4 /permissive-)
+  if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_compile_options(/Od /RTC1 /WX)
+  else()
+    add_compile_options(/O2 /DNDEBUG)
+  endif()
 endif()
 
 # Include directories
 include_directories(${CMAKE_SOURCE_DIR}/include)
 
 # Gather all source files
-file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
-    ${CMAKE_SOURCE_DIR}/src/*.cpp
-    ${CMAKE_SOURCE_DIR}/src/*.cxx
-)
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/src/*.cpp
+     ${CMAKE_SOURCE_DIR}/src/*.cxx)
 
-file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS
-    ${CMAKE_SOURCE_DIR}/include/*.hpp
-    ${CMAKE_SOURCE_DIR}/include/*.h
-)
+file(GLOB_RECURSE HEADERS CONFIGURE_DEPENDS ${CMAKE_SOURCE_DIR}/include/*.hpp
+     ${CMAKE_SOURCE_DIR}/include/*.h)
 
 # Define the executable
 add_executable(main ${SOURCES} ${HEADERS})
 
 # Target-specific properties
-set_target_properties(main PROPERTIES
-    RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin
-    CXX_STANDARD 23
-    CXX_STANDARD_REQUIRED ON
-    CXX_EXTENSIONS OFF
-)
+set_target_properties(
+  main
+  PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin
+             CXX_STANDARD 23
+             CXX_STANDARD_REQUIRED ON
+             CXX_EXTENSIONS OFF)
 
 # SDL2
 if(EMSCRIPTEN)
-    # Emscripten bundles SDL2 as a port — no system library needed
-    target_compile_options(main PRIVATE -sUSE_SDL=2)
-    target_link_options(main PRIVATE -sUSE_SDL=2 -sALLOW_MEMORY_GROWTH=1)
+  # Emscripten bundles SDL2 as a port — no system library needed
+  target_compile_options(main PRIVATE -sUSE_SDL=2)
+  target_link_options(main PRIVATE -sUSE_SDL=2 -sALLOW_MEMORY_GROWTH=1)
 else()
-    find_package(SDL2 REQUIRED)
-    target_include_directories(main PRIVATE ${SDL2_INCLUDE_DIRS})
-    target_link_libraries(main PRIVATE ${SDL2_LIBRARIES})
+  find_package(SDL2 REQUIRED)
+  target_include_directories(main PRIVATE ${SDL2_INCLUDE_DIRS})
+  target_link_libraries(main PRIVATE ${SDL2_LIBRARIES})
 endif()
 
 # Platform-specific configurations
 if(WIN32)
-    target_compile_definitions(main PRIVATE WIN32_LEAN_AND_MEAN)
+  target_compile_definitions(main PRIVATE WIN32_LEAN_AND_MEAN)
 elseif(APPLE)
-    set_target_properties(main PROPERTIES
-        MACOSX_RPATH TRUE
-    )
+  set_target_properties(main PROPERTIES MACOSX_RPATH TRUE)
 elseif(UNIX)
-    target_link_libraries(main PRIVATE dl)
+  target_link_libraries(main PRIVATE dl)
 endif()
 
-# Vendor libraries — auto-detected from vendor/*/src/ and vendor/*/include/
-# To add a new library: drop it into vendor/<name>/src/ and vendor/<name>/include/
+# Vendor libraries — auto-detected from vendor/*/src/ and vendor/*/include/ To
+# add a new library: drop it into vendor/<name>/src/ and vendor/<name>/include/
 # All vendor sources are compiled into a single static library called "vendor".
 # -w suppresses all warnings since we don't own this code.
 file(GLOB_RECURSE VENDOR_SOURCES ${CMAKE_SOURCE_DIR}/vendor/*/src/*.cpp)
 if(VENDOR_SOURCES)
-    add_library(vendor STATIC ${VENDOR_SOURCES})
-    # Add every vendor/<lib>/include as a public include path
-    file(GLOB VENDOR_DIRS LIST_DIRECTORIES true ${CMAKE_SOURCE_DIR}/vendor/*)
-    foreach(VENDOR_DIR ${VENDOR_DIRS})
-      if(IS_DIRECTORY ${VENDOR_DIR})
-        target_include_directories(vendor PUBLIC ${VENDOR_DIR}/include)
-      endif()
-    endforeach()
-    set_target_properties(vendor PROPERTIES COMPILE_FLAGS "-w")
-    target_link_libraries(main PRIVATE vendor)
+  add_library(vendor STATIC ${VENDOR_SOURCES})
+  # Add every vendor/<lib>/include as a public include path
+  file(
+    GLOB VENDOR_DIRS
+    LIST_DIRECTORIES true
+    ${CMAKE_SOURCE_DIR}/vendor/*)
+  foreach(VENDOR_DIR ${VENDOR_DIRS})
+    if(IS_DIRECTORY ${VENDOR_DIR})
+      target_include_directories(vendor PUBLIC ${VENDOR_DIR}/include)
+    endif()
+  endforeach()
+  set_target_properties(vendor PROPERTIES COMPILE_FLAGS "-w")
+  target_link_libraries(main PRIVATE vendor)
 endif()
+
+# Lua — flat C source layout in vendor/lua/
+file(GLOB LUA_SOURCES ${CMAKE_SOURCE_DIR}/vendor/lua/*.c)
+# Exclude standalone interpreter, amalgamation, and test runner (each has
+# main())
+list(FILTER LUA_SOURCES EXCLUDE REGEX ".*(lua|onelua|ltests)\\.c$")
+add_library(lua STATIC ${LUA_SOURCES})
+target_include_directories(lua PUBLIC ${CMAKE_SOURCE_DIR}/vendor/lua)
+set_target_properties(lua PROPERTIES COMPILE_FLAGS "-w")
+target_link_libraries(main PRIVATE lua)
 
 # Copy compile_commands.json to project root for LSP
 if(EXISTS ${CMAKE_BINARY_DIR}/compile_commands.json)
-    add_custom_command(
-        TARGET main POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_if_different
-            ${CMAKE_BINARY_DIR}/compile_commands.json
-            ${CMAKE_SOURCE_DIR}/compile_commands.json
-        COMMENT "Copying compile_commands.json to project root"
-    )
+  add_custom_command(
+    TARGET main
+    POST_BUILD
+    COMMAND
+      ${CMAKE_COMMAND} -E copy_if_different
+      ${CMAKE_BINARY_DIR}/compile_commands.json
+      ${CMAKE_SOURCE_DIR}/compile_commands.json
+    COMMENT "Copying compile_commands.json to project root")
 endif()
 
 # Optional: Enable testing
 option(BUILD_TESTS "Build tests" OFF)
 if(BUILD_TESTS)
-    enable_testing()
-    if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests)
-        file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS
-            ${CMAKE_SOURCE_DIR}/tests/*.cpp
-        )
-        add_executable(test_main ${TEST_SOURCES})
-        target_include_directories(test_main PRIVATE ${CMAKE_SOURCE_DIR}/include)
-        set_target_properties(test_main PROPERTIES
-            RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin
-        )
-        add_test(NAME unit_tests COMMAND test_main)
-    endif()
+  enable_testing()
+  if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/tests)
+    file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS
+         ${CMAKE_SOURCE_DIR}/tests/*.cpp)
+    add_executable(test_main ${TEST_SOURCES})
+    target_include_directories(test_main PRIVATE ${CMAKE_SOURCE_DIR}/include)
+    set_target_properties(test_main PROPERTIES RUNTIME_OUTPUT_DIRECTORY
+                                               ${CMAKE_SOURCE_DIR}/bin)
+    add_test(NAME unit_tests COMMAND test_main)
+  endif()
 endif()
 
 # Development target for setup
-add_custom_target(dev-setup
-    COMMAND ${CMAKE_COMMAND} -E echo "Setting up development environment..."
-    COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_BINARY_DIR}/compile_commands.json
-        ${CMAKE_SOURCE_DIR}/compile_commands.json
-    COMMENT "Development setup complete"
-)
+add_custom_target(
+  dev-setup
+  COMMAND ${CMAKE_COMMAND} -E echo "Setting up development environment..."
+  COMMAND
+    ${CMAKE_COMMAND} -E copy_if_different
+    ${CMAKE_BINARY_DIR}/compile_commands.json
+    ${CMAKE_SOURCE_DIR}/compile_commands.json
+  COMMENT "Development setup complete")
 
 # Print configuration summary
 message(STATUS "")
@@ -167,7 +182,10 @@ message(STATUS "Configuration Summary:")
 message(STATUS "  Project Name:     ${PROJECT_NAME}")
 message(STATUS "  Build Type:       ${CMAKE_BUILD_TYPE}")
 message(STATUS "  C++ Standard:     ${CMAKE_CXX_STANDARD}")
-message(STATUS "  Compiler:         ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+message(
+  STATUS
+    "  Compiler:         ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}"
+)
 message(STATUS "  Source Directory: ${CMAKE_SOURCE_DIR}")
 message(STATUS "  Binary Directory: ${CMAKE_BINARY_DIR}")
 message(STATUS "")
