@@ -1,25 +1,80 @@
-#include "main.hpp"
 
+#include <SDL2/SDL.h>
+#include <SDL_error.h>
+#include <SDL_events.h>
+#include <SDL_rect.h>
+#include <SDL_render.h>
+#include <SDL_video.h>
+#include <cstddef>
 #include <cstdlib>
-#include <format> // C++23 feature
+#ifdef __EMSCRIPTEN__
+    #include <emscripten.h>
+#endif
 #include <iostream>
-#include <string_view>
 
-void hello() {
-    std::cout << "Hello, World!" << std::endl;
+SDL_Window* p_window{nullptr};
+SDL_Renderer* p_renderer{nullptr};
+
+bool init_sdl() {
+    std::cout << "initializing sdl\n";
+    if (SDL_Init(SDL_INIT_VIDEO) < 0) {
+        std::cerr << "sdl initialization failed: " << SDL_GetError() << "\n";
+        return EXIT_FAILURE;
+    }
+
+    p_window = SDL_CreateWindow("sdl and emscripten test", SDL_WINDOWPOS_CENTERED,
+                                SDL_WINDOWPOS_CENTERED, 800, 600, SDL_WINDOW_SHOWN);
+
+    if (p_window == nullptr) {
+        std::cerr << "failed to create sdl window: " << SDL_GetError() << "\n";
+    }
+
+    p_renderer = SDL_CreateRenderer(p_window, -1, SDL_RENDERER_ACCELERATED);
+    if (p_renderer == nullptr) {
+        std::cerr << "failed to create sdl renderer: " << SDL_GetError() << "\n";
+    }
+
+    std::cout << "sdl initialization success\n";
+
+    return true;
 }
 
-void greet(std::string_view name) {
-// Using C++23 std::format if available, fallback to iostream
-#ifdef __cpp_lib_format
-    std::cout << std::format("Hello, {}!\n", name);
-#else
-    std::cout << "Hello, " << name << "!" << std::endl;
+void cleanup() {
+    SDL_DestroyRenderer(p_renderer);
+    SDL_DestroyWindow(p_window);
+    SDL_Quit();
+}
+
+void game_loop() {
+    SDL_Event event;
+    while (SDL_PollEvent(&event)) {
+        if (event.type == SDL_QUIT) {
+#ifdef __EMSCRIPTEN__
+            emscripten_cancel_main_loop();
 #endif
+        }
+    }
+
+    SDL_SetRenderDrawColor(p_renderer, 0, 0, 0, 255);
+    SDL_RenderClear(p_renderer);
+
+    SDL_SetRenderDrawColor(p_renderer, 255, 0, 0, 255);
+    SDL_Rect box{50, 50, 50, 50};
+    SDL_RenderFillRect(p_renderer, &box);
+    SDL_RenderPresent(p_renderer);
 }
 
 auto main() -> int {
-    hello();
-    greet("Modern C++");
+    std::cout << "starting game...\n";
+    if (!init_sdl()) {
+        return EXIT_FAILURE;
+    }
+
+    init_sdl();
+#ifdef __EMSCRIPTEN__
+    emscripten_set_main_loop(game_loop, 0, 1);
+#endif
+    cleanup();
+
     return EXIT_SUCCESS;
 }
