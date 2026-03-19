@@ -1,11 +1,14 @@
 #include <SDL_pixels.h>
 #include <SDL_surface.h>
+#include <memory>
 #include <string_view>
 #ifdef __APPLE__
     #include <OpenGL/gl3.h>
 #else
     #include <GLES3/gl3.h>
 #endif
+#include "shader.hpp"
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_video.h>
@@ -21,6 +24,8 @@
 #ifdef __EMSCRIPTEN__
     #include <emscripten.h>
 #endif
+
+using namespace jpengine;
 
 SDL_Window* p_window{nullptr};
 SDL_GLContext gl_context{};
@@ -50,11 +55,13 @@ void main(){
 GLuint vao{0};
 GLuint vbo{0};
 GLuint ebo{0};
-GLuint shader_program{0};
 GLuint texture_id{0};
 int texture_w{0}, texture_h{0};
 
-GLuint load_shader_from_memory(const char* vertex_shader, const char* frag_shader) {
+std::shared_ptr<Shader> shader{nullptr};
+
+std::shared_ptr<Shader> load_shader_from_memory(const char* vertex_shader,
+                                                const char* frag_shader) {
     const GLuint program = glCreateProgram();
 
     // vertex shader
@@ -71,7 +78,7 @@ GLuint load_shader_from_memory(const char* vertex_shader, const char* frag_shade
         std::cerr << "GLSL compile failed: " << std::string{error_log} << std::endl;
         glDeleteShader(vert_shader);
         glDeleteProgram(program);
-        return 0;
+        return nullptr;
     }
 
     // fragment shader
@@ -89,11 +96,11 @@ GLuint load_shader_from_memory(const char* vertex_shader, const char* frag_shade
         glDeleteShader(vert_shader);
         glDeleteShader(fragment_shader);
         glDeleteProgram(program);
-        return 0;
+        return nullptr;
     }
 
     if (vert_shader == 0 || fragment_shader == 0) {
-        return 0;
+        return nullptr;
     }
 
     glAttachShader(program, vert_shader);
@@ -110,15 +117,15 @@ GLuint load_shader_from_memory(const char* vertex_shader, const char* frag_shade
         std::cerr << "GLSL link failed: " << std::string{error_log} << std::endl;
         glDeleteShader(vert_shader);
         glDeleteShader(fragment_shader);
-        return 0;
+        return nullptr;
     }
 
     if (program == 0) {
         std::cerr << "failed to load shader from memory, program invalid\n";
-        return 0;
+        return nullptr;
     }
 
-    return program;
+    return std::make_shared<Shader>(program);
 }
 
 GLuint load_texture(const std::string_view file_name, bool pixel_art, int& width, int& heigth) {
@@ -182,9 +189,9 @@ bool init_sdl() {
     SDL_GL_SetSwapInterval(1);
     glEnable(GL_BLEND);
     glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ZERO, GL_ONE);
-    shader_program = load_shader_from_memory(vertex_shader_, frag_shader_);
+    shader = load_shader_from_memory(vertex_shader_, frag_shader_);
 
-    if (shader_program == 0) {
+    if (shader == nullptr) {
         std::cerr << "failed to load shaders\n";
         return false;
     }
@@ -249,10 +256,11 @@ void game_loop() {
     SDL_GetWindowSize(p_window, &w, &h);
     glViewport(0.0f, 0.0f, w, h);
 
-    glUseProgram(shader_program);
+    shader->enable();
     glBindTexture(GL_TEXTURE_2D, texture_id);
     glBindVertexArray(vao);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, nullptr);
+    shader->disable();
     SDL_GL_SwapWindow(p_window);
 }
 
