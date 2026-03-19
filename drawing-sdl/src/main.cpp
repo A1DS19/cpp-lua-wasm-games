@@ -1,12 +1,14 @@
 
+#include "sol/state.hpp"
+#include "sol/types.hpp"
+
 #include <SDL2/SDL.h>
-#include <SDL_error.h>
 #include <SDL_events.h>
 #include <SDL_rect.h>
 #include <SDL_render.h>
 #include <SDL_video.h>
-#include <cstddef>
 #include <cstdlib>
+#include <sol/sol.hpp>
 #ifdef __EMSCRIPTEN__
     #include <emscripten.h>
 #endif
@@ -14,6 +16,7 @@
 
 SDL_Window* p_window{nullptr};
 SDL_Renderer* p_renderer{nullptr};
+sol::state lua;
 
 bool init_sdl() {
     std::cout << "initializing sdl\n";
@@ -64,15 +67,26 @@ void game_loop() {
     SDL_RenderPresent(p_renderer);
 }
 
+void register_lua_functions() {
+    lua.open_libraries(sol::lib::base);
+    lua["say_hello"] = [] { std::cout << "hello from lua\n"; };
+}
+
 auto main() -> int {
     std::cout << "starting game...\n";
     if (!init_sdl()) {
         return EXIT_FAILURE;
     }
 
-    init_sdl();
+    register_lua_functions();
+    lua.safe_script_file("assets/scripts/main.lua");
+
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop(game_loop, 0, 1);
+#else
+    while (true) {
+        game_loop();
+    }
 #endif
     cleanup();
 

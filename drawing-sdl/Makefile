@@ -637,14 +637,9 @@ HAS_EMCMAKE := $(shell $(SHELL_CHECK) emcmake >$(NULL_DEVICE) 2>&1 && echo "yes"
 wasm:
 ifeq ($(HAS_EMCMAKE),yes)
 	@echo "$(BOLD)$(BLUE)Building WebAssembly with Emscripten...$(RESET)"
-	@$(MKDIR) $(BIN_DIR)
-	@em++ $(shell find $(SRC_DIR) -name "*.cpp") \
-		-I$(INCLUDE_DIR) \
-		-std=c++20 \
-		-O2 \
-		-s USE_SDL=2 \
-		-s ALLOW_MEMORY_GROWTH=1 \
-		-o $(BIN_DIR)/main.html
+	@$(MKDIR) $(WASM_BUILD_DIR) $(BIN_DIR)
+	@emcmake cmake -B $(WASM_BUILD_DIR) -S . -DCMAKE_BUILD_TYPE=Release
+	@cmake --build $(WASM_BUILD_DIR)
 	@echo "$(GREEN)Build complete! Output: $(BIN_DIR)/main.html$(RESET)"
 else
 	@echo "$(RED)emcmake not found. Install Emscripten:$(RESET)"

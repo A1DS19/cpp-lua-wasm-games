@@ -91,8 +91,11 @@ set_target_properties(
 # SDL2
 if(EMSCRIPTEN)
   # Emscripten bundles SDL2 as a port — no system library needed
-  target_compile_options(main PRIVATE -sUSE_SDL=2)
-  target_link_options(main PRIVATE -sUSE_SDL=2 -sALLOW_MEMORY_GROWTH=1)
+  set_target_properties(main PROPERTIES SUFFIX ".html")
+  target_compile_options(main PRIVATE -sUSE_SDL=2 -fwasm-exceptions)
+  target_link_options(main PRIVATE -sUSE_SDL=2 -sALLOW_MEMORY_GROWTH=1
+                      -fwasm-exceptions
+                      --preload-file ${CMAKE_SOURCE_DIR}/assets@/assets)
 else()
   find_package(SDL2 REQUIRED)
   target_include_directories(main PRIVATE ${SDL2_INCLUDE_DIRS})
@@ -111,11 +114,23 @@ endif()
 # Vendor libraries — auto-detected from vendor/*/src/ and vendor/*/include/ To
 # add a new library: drop it into vendor/<name>/src/ and vendor/<name>/include/
 # All vendor sources are compiled into a single static library called "vendor".
-# -w suppresses all warnings since we don't own this code.
+# Header-only libraries (no src/) are included via target_include_directories on
+# main. -w suppresses all warnings since we don't own this code.
+
+# Always add vendor include dirs to main (handles header-only libs like sol2)
+file(
+  GLOB VENDOR_DIRS
+  LIST_DIRECTORIES true
+  ${CMAKE_SOURCE_DIR}/vendor/*)
+foreach(VENDOR_DIR ${VENDOR_DIRS})
+  if(IS_DIRECTORY ${VENDOR_DIR})
+    target_include_directories(main SYSTEM PRIVATE ${VENDOR_DIR}/include)
+  endif()
+endforeach()
+
 file(GLOB_RECURSE VENDOR_SOURCES ${CMAKE_SOURCE_DIR}/vendor/*/src/*.cpp)
 if(VENDOR_SOURCES)
   add_library(vendor STATIC ${VENDOR_SOURCES})
-  # Add every vendor/<lib>/include as a public include path
   file(
     GLOB VENDOR_DIRS
     LIST_DIRECTORIES true
@@ -133,10 +148,13 @@ endif()
 file(GLOB LUA_SOURCES ${CMAKE_SOURCE_DIR}/vendor/lua/*.c)
 # Exclude standalone interpreter, amalgamation, and test runner (each has
 # main())
-list(FILTER LUA_SOURCES EXCLUDE REGEX ".*(lua|onelua|ltests)\\.c$")
+list(FILTER LUA_SOURCES EXCLUDE REGEX ".*(lua|luac|onelua|ltests)\\.c$")
 add_library(lua STATIC ${LUA_SOURCES})
 target_include_directories(lua PUBLIC ${CMAKE_SOURCE_DIR}/vendor/lua)
 set_target_properties(lua PROPERTIES COMPILE_FLAGS "-w")
+if(EMSCRIPTEN)
+  target_compile_options(lua PRIVATE -fwasm-exceptions)
+endif()
 target_link_libraries(main PRIVATE lua)
 
 # Copy compile_commands.json to project root for LSP
