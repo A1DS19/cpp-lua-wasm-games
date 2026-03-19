@@ -228,6 +228,30 @@ src/stb_impl.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/stb_impl.cpp.s
 .PHONY : src/stb_impl.cpp.s
 
+src/texture.o: src/texture.cpp.o
+.PHONY : src/texture.o
+
+# target to build an object file
+src/texture.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/texture.cpp.o
+.PHONY : src/texture.cpp.o
+
+src/texture.i: src/texture.cpp.i
+.PHONY : src/texture.i
+
+# target to preprocess a source file
+src/texture.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/texture.cpp.i
+.PHONY : src/texture.cpp.i
+
+src/texture.s: src/texture.cpp.s
+.PHONY : src/texture.s
+
+# target to generate assembly for a file
+src/texture.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/texture.cpp.s
+.PHONY : src/texture.cpp.s
+
 vendor/lua/lapi.o: vendor/lua/lapi.c.o
 .PHONY : vendor/lua/lapi.o
 
@@ -1016,6 +1040,9 @@ help:
 	@echo "... src/stb_impl.o"
 	@echo "... src/stb_impl.i"
 	@echo "... src/stb_impl.s"
+	@echo "... src/texture.o"
+	@echo "... src/texture.i"
+	@echo "... src/texture.s"
 	@echo "... vendor/lua/lapi.o"
 	@echo "... vendor/lua/lapi.i"
 	@echo "... vendor/lua/lapi.s"

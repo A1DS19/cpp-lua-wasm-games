@@ -12,7 +12,7 @@ public:
     ~Shader();
     void enable();
     void disable();
-    GLuint get_id() const { return shader_program_; }
+    [[nodiscard]] GLuint get_id() const { return shader_program_; }
 
 private:
     GLuint shader_program_;

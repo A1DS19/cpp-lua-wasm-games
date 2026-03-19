@@ -1,5 +1,9 @@
+#include "shader.hpp"
+#include "texture.hpp"
+
 #include <SDL_pixels.h>
 #include <SDL_surface.h>
+#include <cstddef>
 #include <memory>
 #include <string_view>
 #ifdef __APPLE__
@@ -7,7 +11,6 @@
 #else
     #include <GLES3/gl3.h>
 #endif
-#include "shader.hpp"
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
@@ -55,10 +58,9 @@ void main(){
 GLuint vao{0};
 GLuint vbo{0};
 GLuint ebo{0};
-GLuint texture_id{0};
-int texture_w{0}, texture_h{0};
 
 std::shared_ptr<Shader> shader{nullptr};
+std::shared_ptr<Texture> texture{nullptr};
 
 std::shared_ptr<Shader> load_shader_from_memory(const char* vertex_shader,
                                                 const char* frag_shader) {
@@ -128,12 +130,12 @@ std::shared_ptr<Shader> load_shader_from_memory(const char* vertex_shader,
     return std::make_shared<Shader>(program);
 }
 
-GLuint load_texture(const std::string_view file_name, bool pixel_art, int& width, int& heigth) {
+std::shared_ptr<Texture> load_texture(const std::string_view file_name, bool pixel_art) {
     GLuint texture_id{0};
     SDL_Surface* p_surface = IMG_Load(file_name.data());
     if (!p_surface) {
         std::cerr << "failed to create surface from texture file: " << file_name << "\n";
-        return texture_id;
+        return nullptr;
     }
 
     glGenTextures(1, &texture_id);
@@ -149,8 +151,8 @@ GLuint load_texture(const std::string_view file_name, bool pixel_art, int& width
         format = GL_RGBA;
     }
 
-    width = p_formatted_surface->w;
-    heigth = p_formatted_surface->h;
+    int width = p_formatted_surface->w;
+    int heigth = p_formatted_surface->h;
 
     glTexImage2D(GL_TEXTURE_2D, 0, format, width, heigth, 0, format, GL_UNSIGNED_BYTE,
                  p_formatted_surface->pixels);
@@ -163,7 +165,7 @@ GLuint load_texture(const std::string_view file_name, bool pixel_art, int& width
     SDL_FreeSurface(p_formatted_surface);
     SDL_FreeSurface(p_surface);
 
-    return texture_id;
+    return std::make_shared<Texture>(texture_id, width, heigth, file_name);
 }
 
 bool init_sdl() {
@@ -222,8 +224,8 @@ bool init_sdl() {
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
-    texture_id = load_texture("assets/textures/character.png", true, texture_w, texture_h);
-    if (texture_id == 0) {
+    texture = load_texture("assets/textures/character.png", true);
+    if (texture == nullptr) {
         std::cerr << "failed to load texture [character.png]";
         return false;
     }
@@ -257,9 +259,12 @@ void game_loop() {
     glViewport(0.0f, 0.0f, w, h);
 
     shader->enable();
-    glBindTexture(GL_TEXTURE_2D, texture_id);
+    texture->enable();
+
     glBindVertexArray(vao);
     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_BYTE, nullptr);
+
+    texture->disable();
     shader->disable();
     SDL_GL_SwapWindow(p_window);
 }
