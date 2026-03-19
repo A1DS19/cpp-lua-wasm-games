@@ -1,4 +1,8 @@
-#include <GLES3/gl3.h>
+#ifdef __APPLE__
+#  include <OpenGL/gl3.h>
+#else
+#  include <GLES3/gl3.h>
+#endif
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_video.h>
 #include <SDL_events.h>

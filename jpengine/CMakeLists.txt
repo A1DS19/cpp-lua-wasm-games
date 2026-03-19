@@ -108,9 +108,16 @@ else()
   target_include_directories(main PRIVATE ${SDL2_INCLUDE_DIRS})
   target_link_libraries(main PRIVATE ${SDL2_LIBRARIES})
 
-  # OpenGL ES 3 (GLESv2 library provides the GLES3 API on desktop)
-  find_library(GLES3_LIB GLESv2 REQUIRED)
-  target_link_libraries(main PRIVATE ${GLES3_LIB})
+  # OpenGL / OpenGL ES 3
+  if(APPLE)
+    # macOS has no native GLESv2 — use the OpenGL framework
+    find_package(OpenGL REQUIRED)
+    target_link_libraries(main PRIVATE OpenGL::GL)
+  else()
+    # Linux/Windows: GLESv2 library exposes the GLES3 API
+    find_library(GLES3_LIB GLESv2 REQUIRED)
+    target_link_libraries(main PRIVATE ${GLES3_LIB})
+  endif()
 endif()
 
 # Platform-specific configurations
