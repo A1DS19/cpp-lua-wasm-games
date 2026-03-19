@@ -17,6 +17,7 @@
 SDL_Window* p_window{nullptr};
 SDL_Renderer* p_renderer{nullptr};
 sol::state lua;
+int box_x{50}, box_y{50};
 
 bool init_sdl() {
     std::cout << "initializing sdl\n";
@@ -58,18 +59,26 @@ void game_loop() {
         }
     }
 
+    lua["move_box"]();
+
     SDL_SetRenderDrawColor(p_renderer, 0, 0, 0, 255);
     SDL_RenderClear(p_renderer);
 
     SDL_SetRenderDrawColor(p_renderer, 255, 0, 0, 255);
-    SDL_Rect box{50, 50, 50, 50};
+    SDL_Rect box{box_x, box_y, 50, 50};
     SDL_RenderFillRect(p_renderer, &box);
     SDL_RenderPresent(p_renderer);
 }
 
 void register_lua_functions() {
     lua.open_libraries(sol::lib::base);
-    lua["say_hello"] = [] { std::cout << "hello from lua\n"; };
+    lua["say_hello_cpp"] = [] { std::cout << "hello from lua\n"; };
+    lua["move_box_cpp"] = [](int x, int y) {
+        box_x = x;
+        box_y = y;
+    };
+    lua["get_x_cpp"] = [] { return box_x; };
+    lua["get_y_cpp"] = [] { return box_y; };
 }
 
 auto main() -> int {
@@ -79,7 +88,7 @@ auto main() -> int {
     }
 
     register_lua_functions();
-    lua.safe_script_file("assets/scripts/main.lua");
+    lua.safe_script_file("assets/scripts/main.lua"); // load script once (defines functions)
 
 #ifdef __EMSCRIPTEN__
     emscripten_set_main_loop(game_loop, 0, 1);
