@@ -8,6 +8,8 @@
 #include <SDL_surface.h>
 #include <cstddef>
 #include <memory>
+#include <sol/state.hpp>
+#include <sol/types.hpp>
 #include <string_view>
 #ifdef __APPLE__
     #include <OpenGL/gl3.h>
@@ -31,6 +33,9 @@
     #include <emscripten.h>
 #endif
 
+#include <chrono>
+#include <filesystem>
+
 using namespace jpengine;
 
 SDL_Window* p_window{nullptr};
@@ -43,6 +48,34 @@ GLuint ebo{0};
 std::shared_ptr<Shader> shader{nullptr};
 std::shared_ptr<Texture> texture{nullptr};
 std::unique_ptr<Camera> camera{nullptr};
+
+sol::state lua;
+sol::protected_function script_update;
+std::filesystem::file_time_type last_script_write_time;
+const std::string script_path = "assets/scripts/main.lua";
+
+void reload_script() {
+    try {
+        if (!std::filesystem::exists(script_path)) {
+            return;
+        }
+
+        auto current_time = std::filesystem::last_write_time(script_path);
+        if (current_time > last_script_write_time) {
+            std::cout << "Reloading script: " << script_path << "\n";
+            auto result = lua.do_file(script_path);
+            if (result.valid()) {
+                script_update = result;
+                last_script_write_time = current_time;
+            } else {
+                sol::error err = result;
+                std::cerr << "Failed to reload script: " << err.what() << "\n";
+            }
+        }
+    } catch (const std::exception& e) {
+        std::cerr << "Error checking for script updates: " << e.what() << "\n";
+    }
+}
 
 bool init_sdl() {
     std::cout << "initializing sdl\n";
@@ -109,10 +142,15 @@ bool init_sdl() {
     }
 
     camera = std::make_unique<Camera>(800, 600);
-    camera->update();
-    camera->set_scale(2.F);
-
     std::cout << "sdl/opengl initialization success\n";
+
+    camera->update();
+    lua.open_libraries(sol::lib::base, sol::lib::package, sol::lib::os, sol::lib::math);
+    Camera::create_lua_bind(lua, *camera);
+
+    // Initial load
+    reload_script();
+
     return true;
 }
 
@@ -154,9 +192,21 @@ void game_loop() {
     shader->disable();
     SDL_GL_SwapWindow(p_window);
 
+    // Dynamic Hot Reload check
+#ifndef __EMSCRIPTEN__
+    reload_script();
+#endif
+
+    if (script_update.valid()) {
+        auto result = script_update();
+        if (!result.valid()) {
+            sol::error err = result;
+            std::cerr << "Lua execution error: " << err.what() << "\n";
+        }
+    }
+
     camera->update();
 }
-
 auto main() -> int {
     std::cout << "starting game...\n";
     if (!init_sdl()) {

@@ -1,8 +1,9 @@
 #pragma once
 
+#include <glm/ext/matrix_clip_space.hpp>
 #include <glm/ext/matrix_float4x4.hpp>
 #include <glm/ext/vector_float2.hpp>
-#include <glm/ext/matrix_clip_space.hpp>
+#include <sol/state.hpp>
 namespace jpengine {
 class Camera {
 public:
@@ -27,6 +28,8 @@ public:
     [[nodiscard]] float get_scale() const noexcept { return scale_; }
     [[nodiscard]] glm::mat4 get_camera_matrix() const noexcept { return camera_matrix_; }
     [[nodiscard]] glm::mat4 get_projection_matrix() const noexcept { return projection_matrix_; }
+
+    static void create_lua_bind(sol::state& lua, Camera& camera);
 
 private:
     glm::vec2 position_;

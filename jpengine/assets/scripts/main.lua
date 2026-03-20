@@ -1,7 +1,14 @@
 print("running lua script")
 
-function move_box()
-	local x = get_x_cpp()
-	local y = get_y_cpp()
-	move_box_cpp(x + 1, y + 1)
+local g_cam = Camera.get()
+
+-- We return the function we want the engine to call every frame.
+-- This decouples the Lua logic from the C++ function names.
+return function()
+	if g_cam then
+		local x, y = g_cam:get_position()
+		g_cam:set_position(x - 0.5, y - 0.5)
+		g_cam:set_scale(g_cam:get_scale() * 1.1)
+	end
 end
+

@@ -1,6 +1,9 @@
 #include "rendering/camera.hpp"
 
 #include <glm/ext/matrix_transform.hpp>
+#include <sol/raii.hpp>
+#include <sol/types.hpp>
+#include <tuple>
 
 using namespace jpengine;
 
@@ -36,4 +39,15 @@ void Camera::initialize() {
                                     0.F,                         // top
                                     -1.F,                        // near
                                     1.F);                        // far
+}
+
+void Camera::create_lua_bind(sol::state& lua, Camera& camera) {
+    lua.new_usertype<Camera>(
+        "Camera", sol::no_constructor, "get", [&camera]() { return &camera; }, "set_position",
+        sol::overload([](Camera& c, float x, float y) { c.set_position(x, y); }), "set_scale",
+        &Camera::set_scale, "get_scale", &Camera::get_scale, "get_position",
+        [](Camera& c) {
+            const auto& position = c.get_position();
+            return std::make_tuple(position.x, position.y);
+        });
 }
