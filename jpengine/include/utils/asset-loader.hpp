@@ -1,0 +1,20 @@
+#pragma once
+
+#include <memory>
+#include <string_view>
+
+namespace jpengine {
+class Shader;
+class Texture;
+} // namespace jpengine
+
+namespace jpengine::utils {
+class AssetLoader {
+public:
+    AssetLoader() = delete;
+    static std::shared_ptr<jpengine::Shader> load_shader_from_memory(const char* vertex_shader,
+                                                                     const char* frag_shader);
+    static std::shared_ptr<jpengine::Texture> load_texture(std::string_view filename,
+                                                           bool pixel_art);
+};
+} // namespace jpengine::utils

@@ -180,29 +180,53 @@ src/main.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/main.cpp.s
 .PHONY : src/main.cpp.s
 
-src/shader.o: src/shader.cpp.o
-.PHONY : src/shader.o
+src/rendering/shader.o: src/rendering/shader.cpp.o
+.PHONY : src/rendering/shader.o
 
 # target to build an object file
-src/shader.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/shader.cpp.o
-.PHONY : src/shader.cpp.o
+src/rendering/shader.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/rendering/shader.cpp.o
+.PHONY : src/rendering/shader.cpp.o
 
-src/shader.i: src/shader.cpp.i
-.PHONY : src/shader.i
+src/rendering/shader.i: src/rendering/shader.cpp.i
+.PHONY : src/rendering/shader.i
 
 # target to preprocess a source file
-src/shader.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/shader.cpp.i
-.PHONY : src/shader.cpp.i
+src/rendering/shader.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/rendering/shader.cpp.i
+.PHONY : src/rendering/shader.cpp.i
 
-src/shader.s: src/shader.cpp.s
-.PHONY : src/shader.s
+src/rendering/shader.s: src/rendering/shader.cpp.s
+.PHONY : src/rendering/shader.s
 
 # target to generate assembly for a file
-src/shader.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/shader.cpp.s
-.PHONY : src/shader.cpp.s
+src/rendering/shader.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/rendering/shader.cpp.s
+.PHONY : src/rendering/shader.cpp.s
+
+src/rendering/texture.o: src/rendering/texture.cpp.o
+.PHONY : src/rendering/texture.o
+
+# target to build an object file
+src/rendering/texture.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/rendering/texture.cpp.o
+.PHONY : src/rendering/texture.cpp.o
+
+src/rendering/texture.i: src/rendering/texture.cpp.i
+.PHONY : src/rendering/texture.i
+
+# target to preprocess a source file
+src/rendering/texture.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/rendering/texture.cpp.i
+.PHONY : src/rendering/texture.cpp.i
+
+src/rendering/texture.s: src/rendering/texture.cpp.s
+.PHONY : src/rendering/texture.s
+
+# target to generate assembly for a file
+src/rendering/texture.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/rendering/texture.cpp.s
+.PHONY : src/rendering/texture.cpp.s
 
 src/stb_impl.o: src/stb_impl.cpp.o
 .PHONY : src/stb_impl.o
@@ -228,29 +252,29 @@ src/stb_impl.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/stb_impl.cpp.s
 .PHONY : src/stb_impl.cpp.s
 
-src/texture.o: src/texture.cpp.o
-.PHONY : src/texture.o
+src/utils/asset-loader.o: src/utils/asset-loader.cpp.o
+.PHONY : src/utils/asset-loader.o
 
 # target to build an object file
-src/texture.cpp.o:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/texture.cpp.o
-.PHONY : src/texture.cpp.o
+src/utils/asset-loader.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/utils/asset-loader.cpp.o
+.PHONY : src/utils/asset-loader.cpp.o
 
-src/texture.i: src/texture.cpp.i
-.PHONY : src/texture.i
+src/utils/asset-loader.i: src/utils/asset-loader.cpp.i
+.PHONY : src/utils/asset-loader.i
 
 # target to preprocess a source file
-src/texture.cpp.i:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/texture.cpp.i
-.PHONY : src/texture.cpp.i
+src/utils/asset-loader.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/utils/asset-loader.cpp.i
+.PHONY : src/utils/asset-loader.cpp.i
 
-src/texture.s: src/texture.cpp.s
-.PHONY : src/texture.s
+src/utils/asset-loader.s: src/utils/asset-loader.cpp.s
+.PHONY : src/utils/asset-loader.s
 
 # target to generate assembly for a file
-src/texture.cpp.s:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/texture.cpp.s
-.PHONY : src/texture.cpp.s
+src/utils/asset-loader.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/main.dir/build.make CMakeFiles/main.dir/src/utils/asset-loader.cpp.s
+.PHONY : src/utils/asset-loader.cpp.s
 
 vendor/lua/lapi.o: vendor/lua/lapi.c.o
 .PHONY : vendor/lua/lapi.o
@@ -1034,15 +1058,18 @@ help:
 	@echo "... src/main.o"
 	@echo "... src/main.i"
 	@echo "... src/main.s"
-	@echo "... src/shader.o"
-	@echo "... src/shader.i"
-	@echo "... src/shader.s"
+	@echo "... src/rendering/shader.o"
+	@echo "... src/rendering/shader.i"
+	@echo "... src/rendering/shader.s"
+	@echo "... src/rendering/texture.o"
+	@echo "... src/rendering/texture.i"
+	@echo "... src/rendering/texture.s"
 	@echo "... src/stb_impl.o"
 	@echo "... src/stb_impl.i"
 	@echo "... src/stb_impl.s"
-	@echo "... src/texture.o"
-	@echo "... src/texture.i"
-	@echo "... src/texture.s"
+	@echo "... src/utils/asset-loader.o"
+	@echo "... src/utils/asset-loader.i"
+	@echo "... src/utils/asset-loader.s"
 	@echo "... vendor/lua/lapi.o"
 	@echo "... vendor/lua/lapi.i"
 	@echo "... vendor/lua/lapi.s"
