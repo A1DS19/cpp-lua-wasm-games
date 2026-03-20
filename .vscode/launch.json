@@ -1,0 +1,13 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C/C++ Runner: Debug Session",
+      "type": "lldb",
+      "request": "launch",
+      "args": [],
+      "cwd": "/Users/jose.padilla/Desktop/courses/cpp-lua-platformer-game/jpengine/src",
+      "program": "/Users/jose.padilla/Desktop/courses/cpp-lua-platformer-game/jpengine/src/build/Debug/outDebug"
+    }
+  ]
+}
