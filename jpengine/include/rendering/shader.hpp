@@ -23,8 +23,8 @@ public:
 
 private:
     GLuint shader_program_;
-    std::unordered_map<std::string_view, GLuint> uniform_locations_;
+    std::unordered_map<std::string_view, GLint> uniform_locations_;
 
-    GLuint get_uniform_location(std::string_view name);
+    GLint get_uniform_location(std::string_view name);
 };
 } // namespace jpengine

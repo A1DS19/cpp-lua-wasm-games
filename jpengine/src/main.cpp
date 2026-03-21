@@ -65,7 +65,7 @@ void reload_script() {
             std::cout << "Reloading script: " << script_path << "\n";
             auto result = lua.do_file(script_path);
             if (result.valid()) {
-                script_update = result;
+                script_update = result.get<sol::protected_function>(0);
                 last_script_write_time = current_time;
             } else {
                 sol::error err = result;

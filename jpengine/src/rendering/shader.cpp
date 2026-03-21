@@ -29,14 +29,14 @@ void Shader::set_uniform_mat4(std::string_view name, glm::mat4& matrix) {
     return glm::make_mat4(values);
 }
 
-GLuint Shader::get_uniform_location(std::string_view name) {
+GLint Shader::get_uniform_location(std::string_view name) {
     auto uniform_itr = uniform_locations_.find(name);
     if (uniform_itr != uniform_locations_.end()) {
         return uniform_itr->second;
     }
 
-    GLuint location = glGetUniformLocation(shader_program_, name.data());
-    if (location == 0XFFFFFFFF) {
+    GLint location = glGetUniformLocation(shader_program_, name.data());
+    if (location == -1) {
         std::cerr << "uniform [" << name << "] not found in shader.\n";
         return 0;
     }

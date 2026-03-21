@@ -91,7 +91,7 @@ std::shared_ptr<jpengine::Texture> AssetLoader::load_texture(std::string_view fi
     glGenTextures(1, &texture_id);
     glBindTexture(GL_TEXTURE_2D, texture_id);
 
-    int format{GL_RGBA};
+    GLenum format{GL_RGBA};
     SDL_Surface* p_formatted_surface = nullptr;
     if (p_surface->format->BytesPerPixel == 3) {
         p_formatted_surface = SDL_ConvertSurfaceFormat(p_surface, SDL_PIXELFORMAT_RGB24, 0);
@@ -104,7 +104,7 @@ std::shared_ptr<jpengine::Texture> AssetLoader::load_texture(std::string_view fi
     int width = p_formatted_surface->w;
     int heigth = p_formatted_surface->h;
 
-    glTexImage2D(GL_TEXTURE_2D, 0, format, width, heigth, 0, format, GL_UNSIGNED_BYTE,
+    glTexImage2D(GL_TEXTURE_2D, 0, static_cast<GLint>(format), width, heigth, 0, format, GL_UNSIGNED_BYTE,
                  p_formatted_surface->pixels);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
