@@ -55,6 +55,17 @@ std::unique_ptr<Camera> camera{nullptr};
 sol::protected_function script_update;
 std::unique_ptr<Registry> registry = nullptr;
 
+void register_meta_components() {
+    Entity::register_meta_component<Identification>();
+    Entity::register_meta_component<TransformComponent>();
+    Entity::register_meta_component<SpriteComponent>();
+    Entity::register_meta_component<BoxColider>();
+    Entity::register_meta_component<CircleCollider>();
+    Entity::register_meta_component<AnimationComponent>();
+    Entity::register_meta_component<TransformComponent>();
+    Entity::register_meta_component<RigidBodyComponent>();
+}
+
 bool init_sdl() {
     std::cout << "initializing sdl\n";
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -120,12 +131,16 @@ bool init_sdl() {
     std::cout << "sdl/opengl initialization success\n";
 
     auto lua = std::make_shared<sol::state>();
+    registry = std::make_unique<Registry>();
     camera->update();
     lua->open_libraries(sol::lib::base, sol::lib::package, sol::lib::os, sol::lib::math);
+
+    register_meta_components();
+
     Camera::create_lua_bind(*lua, *camera);
     Vertex::create_lua_bind(*lua);
-
-    registry = std::make_unique<Registry>();
+    ComponentBinder::create_lua_bind(*lua);
+    Entity::create_lua_bind(*lua, *registry);
 
     auto ent1 = registry->create_entity();
     auto ent2 = registry->create_entity();

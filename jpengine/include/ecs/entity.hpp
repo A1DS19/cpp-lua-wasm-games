@@ -9,6 +9,7 @@ class Entity {
 public:
     Entity(Registry& registry) : registry_{registry}, entity_(registry.create_entity()) {}
     Entity(Registry& registry, const entt::entity& entity) : registry_{registry}, entity_(entity) {}
+    Entity(const Entity& other) : registry_{other.registry_}, entity_{other.entity_} {}
     Entity& operator=(const Entity& other) {
         this->entity_ = other.entity_;
         return *this;

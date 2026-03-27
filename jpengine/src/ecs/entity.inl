@@ -54,11 +54,13 @@ void Entity::register_meta_component() {
 
     entt::meta_factory<TComponent>()
         .type(entt::type_hash<TComponent>::value())
-        .template func<&add_component<TComponent>>("add_component"_hs)
-        .template func<&get_component<TComponent>>("get_component"_hs)
-        .template func<&has_component<TComponent>>("has_component"_hs)
-        .template func<&remove_component<TComponent>>("remove_component"_hs);
+        .template func<&jpengine::add_component<TComponent>>("add_component"_hs)
+        .template func<&jpengine::get_component<TComponent>>("get_component"_hs)
+        .template func<&jpengine::has_component<TComponent>>("has_component"_hs)
+        .template func<&jpengine::remove_component<TComponent>>("remove_component"_hs);
 }
+
+namespace jpengine {
 
 template <typename TComponent>
 auto add_component(Entity& entity, const sol::table& comp, sol::this_state state) {
@@ -83,3 +85,5 @@ template <typename TComponent>
 auto remove_component(Entity& entity) {
     entity.remove_component<TComponent>();
 }
+
+} // namespace jpengine
