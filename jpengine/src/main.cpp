@@ -1,19 +1,21 @@
 #include "ecs/component.hpp"
 #include "ecs/entity.hpp"
 #include "ecs/registry.hpp"
-#include "scripting/glm_bindings.hpp"
 #include "lobject.h"
+#include "rendering/batch-renderer.hpp"
 #include "rendering/camera.hpp"
 #include "rendering/default-shaders.hpp"
 #include "rendering/shader.hpp"
 #include "rendering/texture.hpp"
 #include "rendering/vertex.hpp"
+#include "scripting/glm_bindings.hpp"
 #include "utils/asset-loader.hpp"
 
 #include <SDL_pixels.h>
 #include <SDL_surface.h>
 #include <cstddef>
 #include <glm/ext/vector_float2.hpp>
+#include <glm/fwd.hpp>
 #include <memory>
 #include <sol/state.hpp>
 #include <sol/types.hpp>
@@ -46,10 +48,7 @@ using namespace jpengine;
 SDL_Window* p_window{nullptr};
 SDL_GLContext gl_context{};
 
-GLuint vao{0};
-GLuint vbo{0};
-GLuint ebo{0};
-
+std::unique_ptr<BatchRenderer> pbatch_renderer;
 std::shared_ptr<Shader> shader{nullptr};
 std::shared_ptr<Texture> texture{nullptr};
 std::unique_ptr<Camera> camera{nullptr};
@@ -75,6 +74,29 @@ void register_meta_components() {
     Registry::register_meta_component<AnimationComponent>();
     Registry::register_meta_component<TransformComponent>();
     Registry::register_meta_component<RigidBodyComponent>();
+}
+
+void render_sprites() {
+    auto view = registry->get_registry().view<TransformComponent, SpriteComponent>();
+    pbatch_renderer->begin();
+    for (auto entity : view) {
+        const auto& transform = view.get<TransformComponent>(entity);
+        const auto& sprite = view.get<SpriteComponent>(entity);
+        if (sprite.hidden_ || sprite.string_.empty()) {
+            continue;
+        }
+
+        glm::vec4 pos{transform.position_.x, transform.position_.y,
+                      sprite.width_ * transform.scale_.x, sprite.height_ * transform.scale_.y};
+
+        glm::vec4 uvs{sprite.uvs_.u_, sprite.uvs_.v_, sprite.uvs_.uv_widht_,
+                      sprite.uvs_.uv_height_};
+
+        pbatch_renderer->add_sprite(pos, uvs, sprite.layer_, texture->get_id(), sprite.color_);
+    }
+
+    pbatch_renderer->end();
+    pbatch_renderer->render();
 }
 
 bool init_sdl() {
@@ -108,35 +130,13 @@ bool init_sdl() {
         return false;
     }
 
-    std::vector<Vertex> vertices;
-    vertices.resize(6);
-    vertices[0] = Vertex{.position_ = glm::vec2{50.F, 0.F}, .uvs_ = UV{.u_ = 1.F, .v_ = 0.F}};
-    vertices[1] = Vertex{.position_ = glm::vec2{50.F, 50.F}, .uvs_ = UV{.u_ = 1.F, .v_ = 1.F}};
-    vertices[2] = Vertex{.position_ = glm::vec2{0.F, 0.F}, .uvs_ = UV{.u_ = 0.F, .v_ = 0.F}};
-    vertices[3] = Vertex{.position_ = glm::vec2{50.F, 50.F}, .uvs_ = UV{.u_ = 1.F, .v_ = 1.F}};
-    vertices[4] = Vertex{.position_ = glm::vec2{0.F, 50.F}, .uvs_ = UV{.u_ = 0.F, .v_ = 1.F}};
-    vertices[5] = Vertex{.position_ = glm::vec2{0.F, 0.F}, .uvs_ = UV{.u_ = 0.F, .v_ = 0.F}};
-
-    glGenVertexArrays(1, &vao);
-    glGenBuffers(1, &vbo);
-    glGenBuffers(1, &ebo);
-    glBindVertexArray(vao);
-    glBindBuffer(GL_ARRAY_BUFFER, vbo);
-    glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(vertices.size() * sizeof(Vertex)),
-                 vertices.data(), GL_STATIC_DRAW);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-
-    glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex),
-                          (void*)offsetof(Vertex, position_));
-    glEnableVertexAttribArray(0);
-    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uvs_));
-    glEnableVertexAttribArray(1);
-
     texture = jpengine::utils::AssetLoader::load_texture("assets/textures/character.png", true);
     if (texture == nullptr) {
         std::cerr << "failed to load texture [character.png]";
         return false;
     }
+
+    pbatch_renderer = std::make_unique<BatchRenderer>();
 
     camera = std::make_unique<Camera>(800, 600);
     std::cout << "sdl/opengl initialization success\n";
@@ -196,16 +196,12 @@ void game_loop() {
     glViewport(0.0f, 0.0f, w, h);
 
     shader->enable();
-    texture->enable();
-
-    glBindVertexArray(vao);
 
     auto camera_matrix = camera->get_camera_matrix();
     shader->set_uniform_mat4("u_projection", camera_matrix);
 
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    render_sprites();
 
-    texture->disable();
     shader->disable();
     SDL_GL_SwapWindow(p_window);
 
