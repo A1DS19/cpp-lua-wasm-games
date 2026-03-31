@@ -1,8 +1,10 @@
 #include "ecs/component.hpp"
 #include "ecs/entity.hpp"
 #include "ecs/registry.hpp"
+#include "rendering/batch-renderer.hpp"
 #include "rendering/camera.hpp"
 #include "rendering/default-shaders.hpp"
+#include "rendering/font.hpp"
 #include "rendering/shader.hpp"
 #include "rendering/texture.hpp"
 #include "rendering/vertex.hpp"
@@ -52,6 +54,9 @@ GLuint ebo{0};
 std::shared_ptr<Shader> shader{nullptr};
 std::shared_ptr<Texture> texture{nullptr};
 std::unique_ptr<Camera> camera{nullptr};
+std::unique_ptr<BatchRenderer> pbatch_renderer{nullptr};
+std::unique_ptr<Registry> pregistry{nullptr};
+std::shared_ptr<Font> pfont{nullptr};
 
 sol::protected_function script_update;
 std::unique_ptr<Registry> registry = nullptr;
@@ -131,6 +136,14 @@ bool init_sdl() {
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, uvs_));
     glEnableVertexAttribArray(1);
 
+    pfont = utils::AssetLoader::load_font("assets/fonts/pixel.ttf");
+    if (!pfont) {
+        std::cerr << "failed to load pixel font" << "\n";
+        return false;
+    }
+
+    pbatch_renderer = std::make_unique<BatchRenderer>();
+
     texture = jpengine::utils::AssetLoader::load_texture("assets/textures/character.png", true);
     if (texture == nullptr) {
         std::cerr << "failed to load texture [character.png]";
@@ -170,6 +183,30 @@ bool init_sdl() {
     return true;
 }
 
+void render_sprites() {
+    auto view = registry->get_registry().view<TransformComponent, SpriteComponent>();
+    pbatch_renderer->begin();
+
+    for (auto entity : view) {
+        const auto& transform = view.get<TransformComponent>(entity);
+        const auto& sprite = view.get<SpriteComponent>(entity);
+
+        if (sprite.hidden_ || sprite.string_.empty())
+            continue;
+
+        glm::vec4 pos{transform.position_.x, transform.position_.y,
+                      sprite.width_ * transform.scale_.x, sprite.height_ * transform.scale_.y};
+
+        glm::vec4 uvs{sprite.uvs_.u_, sprite.uvs_.v_, sprite.uvs_.uv_widht_,
+                      sprite.uvs_.uv_height_};
+
+        pbatch_renderer->add_sprite(pos, uvs, sprite.layer_, texture->get_id(), sprite.color_);
+    }
+
+    pbatch_renderer->end();
+    pbatch_renderer->render();
+}
+
 void cleanup() {
     SDL_GL_DeleteContext(gl_context);
     SDL_DestroyWindow(p_window);
@@ -195,16 +232,14 @@ void game_loop() {
     glViewport(0.0f, 0.0f, w, h);
 
     shader->enable();
-    texture->enable();
 
     glBindVertexArray(vao);
 
     auto camera_matrix = camera->get_camera_matrix();
     shader->set_uniform_mat4("u_projection", camera_matrix);
 
-    glDrawArrays(GL_TRIANGLES, 0, 6);
+    render_sprites();
 
-    texture->disable();
     shader->disable();
     SDL_GL_SwapWindow(p_window);
 

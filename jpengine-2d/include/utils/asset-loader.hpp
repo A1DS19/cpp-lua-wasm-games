@@ -6,6 +6,8 @@
 namespace jpengine {
 class Shader;
 class Texture;
+class Font;
+
 } // namespace jpengine
 
 namespace jpengine::utils {
@@ -16,5 +18,7 @@ public:
                                                                      const char* frag_shader);
     static std::shared_ptr<jpengine::Texture> load_texture(std::string_view filename,
                                                            bool pixel_art);
+    static std::shared_ptr<jpengine::Font> load_font(std::string_view filename,
+                                                     float font_size = 32.F);
 };
 } // namespace jpengine::utils
