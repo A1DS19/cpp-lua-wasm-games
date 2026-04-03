@@ -109,10 +109,11 @@ void BatchRenderer::create_batches() {
             batches_.back()->num_indices_ += NUM_SPRITE_INDICES;
         }
 
+        // Keep winding consistent for both triangles with index pattern {0,1,2, 2,3,0}.
         vertices[current_index++] = sprite->top_left_;
         vertices[current_index++] = sprite->top_right_;
-        vertices[current_index++] = sprite->bottom_left_;
         vertices[current_index++] = sprite->bottom_right_;
+        vertices[current_index++] = sprite->bottom_left_;
 
         prev_texture_id = sprite->texture_id_;
         offset += NUM_SPRITE_INDICES;
