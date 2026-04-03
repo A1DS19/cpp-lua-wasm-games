@@ -30,6 +30,11 @@ void ComponentBinder::create_lua_bind(sol::state& lua) {
                        [](float x, float y, float rotation) {
                            return TransformComponent{.position_ = glm::vec2{x, y},
                                                      .rotation_ = rotation};
+                       },
+                       [](float x, float y, float sx, float sy, float rotation) {
+                           return TransformComponent{.position_ = glm::vec2{x, y},
+                                                     .scale_ = glm::vec2{sx, sy},
+                                                     .rotation_ = rotation};
                        }),
         "get_position",
         [](const TransformComponent& t) { return std::make_tuple(t.position_.x, t.position_.y); },

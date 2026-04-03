@@ -6,6 +6,7 @@
 #include "rendering/default-shaders.hpp"
 #include "rendering/font.hpp"
 #include "rendering/shader.hpp"
+#include "rendering/text-batch-renderer.hpp"
 #include "rendering/texture.hpp"
 #include "rendering/vertex.hpp"
 #include "scripting/glm_bindings.hpp"
@@ -52,9 +53,11 @@ GLuint vbo{0};
 GLuint ebo{0};
 
 std::shared_ptr<Shader> shader{nullptr};
+std::shared_ptr<Shader> pfont_shader{nullptr};
 std::shared_ptr<Texture> texture{nullptr};
 std::unique_ptr<Camera> camera{nullptr};
 std::unique_ptr<BatchRenderer> pbatch_renderer{nullptr};
+std::unique_ptr<TextBatchRenderer> ptext_batch_renderer{nullptr};
 std::shared_ptr<Font> pfont{nullptr};
 
 sol::protected_function script_update;
@@ -109,7 +112,15 @@ bool init_sdl() {
         DefaultShaders::basic_shader_vert, DefaultShaders::basic_shader_frag);
 
     if (shader == nullptr) {
-        std::cerr << "failed to load shaders\n";
+        std::cerr << "failed to load basic shaders\n";
+        return false;
+    }
+
+    pfont_shader = jpengine::utils::AssetLoader::load_shader_from_memory(
+        DefaultShaders::font_shader_vert, DefaultShaders::font_shader_frag);
+
+    if (pfont_shader == nullptr) {
+        std::cerr << "failed to load font shaders\n";
         return false;
     }
 
@@ -144,6 +155,7 @@ bool init_sdl() {
     }
 
     pbatch_renderer = std::make_unique<BatchRenderer>();
+    ptext_batch_renderer = std::make_unique<TextBatchRenderer>();
 
     texture = jpengine::utils::AssetLoader::load_texture("assets/textures/character.png", true);
     if (texture == nullptr) {
@@ -182,6 +194,29 @@ bool init_sdl() {
     }
 
     return true;
+}
+
+void render_text() {
+    auto text_camera_matrix = camera->get_camera_matrix();
+    auto text_view = registry->get_registry().view<TextComponent>();
+
+    ptext_batch_renderer->begin();
+    pfont_shader->enable();
+    pfont_shader->set_uniform_mat4("u_projection", text_camera_matrix);
+
+    for (auto entity : text_view) {
+        Entity ent{*registry, entity};
+        const auto& text = ent.get_component<TextComponent>();
+        if (text.hidden_) {
+            continue;
+        }
+        const auto& transform = ent.get_component<TransformComponent>();
+        ptext_batch_renderer->add_text(text.text_, pfont, transform.position_, text.color_);
+    }
+
+    ptext_batch_renderer->end();
+    ptext_batch_renderer->render();
+    pfont_shader->disable();
 }
 
 void render_sprites() {
@@ -224,13 +259,6 @@ void game_loop() {
         }
     }
 
-    auto text_view = registry->get_registry().view<TextComponent>();
-    for (auto entity : text_view) {
-        Entity ent{*registry, entity};
-        const auto& text = ent.get_component<TextComponent>();
-        std::cout << "Text: " << text.text_ << "\n";
-    }
-
     SDL_GL_MakeCurrent(p_window, gl_context);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -247,6 +275,7 @@ void game_loop() {
     shader->set_uniform_mat4("u_projection", camera_matrix);
 
     render_sprites();
+    render_text();
 
     shader->disable();
     SDL_GL_SwapWindow(p_window);

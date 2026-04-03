@@ -50,12 +50,14 @@ void TextBatchRenderer::add_text(std::string_view text, std::shared_ptr<Font>& p
 
 void TextBatchRenderer::render() {
     if (text_batches_.empty()) {
-        glBindVertexArray(vao_);
-        for (const auto& batch : text_batches_) {
-            glBindTexture(GL_TEXTURE_2D, batch->texture_id_);
-            glDrawArrays(GL_TRIANGLES, static_cast<GLint>(batch->offset_),
-                         static_cast<GLsizei>(batch->num_vertices_));
-        }
+        return;
+    }
+
+    glBindVertexArray(vao_);
+    for (const auto& batch : text_batches_) {
+        glBindTexture(GL_TEXTURE_2D, batch->texture_id_);
+        glDrawArrays(GL_TRIANGLES, static_cast<GLint>(batch->offset_),
+                     static_cast<GLsizei>(batch->num_vertices_));
     }
 }
 
