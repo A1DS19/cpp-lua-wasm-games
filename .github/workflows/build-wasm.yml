@@ -19,9 +19,9 @@ jobs:
           version: latest
 
       - name: Configure
-        working-directory: jpengine
+        working-directory: jpengine-2d
         run: emcmake cmake -B build-wasm -S . -DCMAKE_BUILD_TYPE=Release
 
       - name: Build
-        working-directory: jpengine
+        working-directory: jpengine-2d
         run: cmake --build build-wasm
