@@ -92,12 +92,15 @@ set_target_properties(
 if(EMSCRIPTEN)
   # Emscripten bundles SDL2 as a port — WebGL2 = GLES3
   set_target_properties(main PROPERTIES SUFFIX ".html")
-  target_compile_options(main PRIVATE -sUSE_SDL=2 -sUSE_SDL_IMAGE=2 -fwasm-exceptions)
+  target_compile_options(main PRIVATE -sUSE_SDL=2 -sUSE_SDL_IMAGE=2 -sUSE_SDL_MIXER=2
+                                      -fwasm-exceptions)
   target_link_options(
     main
     PRIVATE
     -sUSE_SDL=2
     -sUSE_SDL_IMAGE=2
+    -sUSE_SDL_MIXER=2
+    -sSDL2_MIXER_FORMATS=["ogg","mp3"]
     -sSDL2_IMAGE_FORMATS=["png","jpg"]
     -sALLOW_MEMORY_GROWTH=1
     -sUSE_WEBGL2=1
@@ -113,6 +116,22 @@ else()
   find_package(SDL2_image REQUIRED)
   target_include_directories(main PRIVATE ${CMAKE_PREFIX_PATH}/include)
   target_link_libraries(main PRIVATE SDL2_image::SDL2_image)
+
+  find_package(SDL2_mixer QUIET)
+  if(SDL2_mixer_FOUND)
+    target_link_libraries(main PRIVATE SDL2_mixer::SDL2_mixer)
+  else()
+    find_package(PkgConfig QUIET)
+    if(PkgConfig_FOUND)
+      pkg_check_modules(SDL2_MIXER QUIET IMPORTED_TARGET SDL2_mixer)
+    endif()
+
+    if(TARGET PkgConfig::SDL2_MIXER)
+      target_link_libraries(main PRIVATE PkgConfig::SDL2_MIXER)
+    else()
+      message(WARNING "SDL2_mixer not found on native build; SDL_mixer features will be unavailable.")
+    endif()
+  endif()
 
   # OpenGL / OpenGL ES 3
   if(APPLE)

@@ -12,6 +12,8 @@
 #include "rendering/texture.hpp"
 #include "rendering/vertex.hpp"
 #include "scripting/glm_bindings.hpp"
+#include "sounds/music_player.hpp"
+#include "sounds/sound_player.hpp"
 #include "utils/asset-loader.hpp"
 
 #include <glm/ext/vector_float2.hpp>
@@ -113,6 +115,11 @@ bool Game::initialize_registry() {
     pinput_context->pkeyboard_ = std::make_shared<Keyboard>();
     pinput_context->pgamepad_ = std::make_shared<Gamepad>();
     pinput_context->pmouse_ = std::make_shared<Mouse>();
+
+    auto paudio_context = std::make_shared<AudioContext>();
+    paudio_context->pmusic_player_ = std::make_shared<MusicPlayer>();
+    paudio_context->psound_player_ = std::make_shared<SoundPlayer>();
+    pregistry_->add_to_context<AudioCtxPtr>(std::move(paudio_context));
 
     pregistry_->add_to_context<InputCtxPtr>(std::move(pinput_context));
     pregistry_->add_to_context<BatchRendererPtr>(std::make_shared<BatchRenderer>());
@@ -423,6 +430,23 @@ bool Game::load_temp_assets() {
         std::cerr << "failed to load texture [character.png]";
         return false;
     }
+
+    ptemp_assets->pmusic_ =
+        jpengine::utils::AssetLoader::load_music("assets/music/the_field_of_dreams.mp3");
+    if (ptemp_assets->pmusic_ == nullptr) {
+        std::cerr << "failed to load music";
+        return false;
+    }
+
+    ptemp_assets->psoundfx_ =
+        jpengine::utils::AssetLoader::load_soundfx("assets/soundfx/menu_accept.ogg");
+    if (ptemp_assets->psoundfx_ == nullptr) {
+        std::cerr << "failed to load soundfx";
+        return false;
+    }
+
+    auto& paudio_context = pregistry_->get_context<AudioCtxPtr>();
+    paudio_context->pmusic_player_->play(ptemp_assets->pmusic_, -1);
 
     return true;
 }

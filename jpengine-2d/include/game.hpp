@@ -2,6 +2,7 @@
 
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_video.h>
+#include <SDL_mixer.h>
 #include <memory>
 #include <sol/sol.hpp>
 
@@ -17,6 +18,8 @@ class Camera;
 class Gamepad;
 class BatchRenderer;
 class TextBatchRenderer;
+class MusicPlayer;
+class SoundPlayer;
 
 struct MainGameScripts {
     sol::protected_function update{sol::lua_nil_t{}};
@@ -28,6 +31,14 @@ struct TempAssets {
     std::shared_ptr<Shader> pfont_shader_{nullptr};
     std::shared_ptr<Texture> ptexture_{nullptr};
     std::shared_ptr<Font> pfont_{nullptr};
+
+    Mix_Music* pmusic_{nullptr};
+    Mix_Chunk* psoundfx_{nullptr};
+};
+
+struct AudioContext {
+    std::shared_ptr<MusicPlayer> pmusic_player_{nullptr};
+    std::shared_ptr<SoundPlayer> psound_player_{nullptr};
 };
 
 struct InputContext {
@@ -44,6 +55,7 @@ using CameraPtr = std::shared_ptr<Camera>;
 using BatchRendererPtr = std::shared_ptr<BatchRenderer>;
 using TextBatchRendererPtr = std::shared_ptr<TextBatchRenderer>;
 using TempAssetsPtr = std::shared_ptr<TempAssets>;
+using AudioCtxPtr = std::shared_ptr<AudioContext>;
 
 class Game {
 public:

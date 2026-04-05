@@ -7,6 +7,7 @@
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_video.h>
+#include <SDL_mixer.h>
 #include <cstdint>
 #include <fstream>
 #include <iostream>
@@ -170,4 +171,26 @@ std::shared_ptr<jpengine::Font> AssetLoader::load_font(std::string_view filename
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
     return std::make_shared<jpengine::Font>(id, width, heigth, font_size, (void*)data.release());
+}
+
+Mix_Music* AssetLoader::load_music(std::string_view filename) {
+    Mix_Music* pmusic = Mix_LoadMUS(filename.data());
+
+    if (!pmusic) {
+        std::cerr << "failed to load: " << filename << "\nerror: " << Mix_GetError() << "\n";
+        return nullptr;
+    }
+
+    return pmusic;
+}
+
+Mix_Chunk* AssetLoader::load_soundfx(std::string_view filename) {
+    Mix_Chunk* pchunk = Mix_LoadWAV(filename.data());
+
+    if (!pchunk) {
+        std::cerr << "failed to load: " << filename << "\nerror: " << Mix_GetError() << "\n";
+        return nullptr;
+    }
+
+    return pchunk;
 }

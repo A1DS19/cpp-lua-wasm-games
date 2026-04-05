@@ -638,7 +638,7 @@ wasm:
 ifeq ($(HAS_EMCMAKE),yes)
 	@echo "$(BOLD)$(BLUE)Building WebAssembly with Emscripten...$(RESET)"
 	@$(MKDIR) $(WASM_BUILD_DIR) $(BIN_DIR)
-	@emcmake cmake -B $(WASM_BUILD_DIR) -S . -DCMAKE_BUILD_TYPE=Release
+	@emcmake cmake -B $(WASM_BUILD_DIR) -S . -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-sUSE_SDL_MIXER=2" -DCMAKE_CXX_FLAGS="-sUSE_SDL_MIXER=2" -DCMAKE_EXE_LINKER_FLAGS='-sUSE_SDL_MIXER=2 -sSDL2_MIXER_FORMATS=["ogg","mp3"]'
 	@cmake --build $(WASM_BUILD_DIR)
 	@echo "$(GREEN)Build complete! Output: $(BIN_DIR)/main.html$(RESET)"
 else
