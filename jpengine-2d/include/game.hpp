@@ -20,20 +20,11 @@ class BatchRenderer;
 class TextBatchRenderer;
 class MusicPlayer;
 class SoundPlayer;
+class AssetManager;
 
 struct MainGameScripts {
     sol::protected_function update{sol::lua_nil_t{}};
     sol::protected_function render{sol::lua_nil_t{}};
-};
-
-struct TempAssets {
-    std::shared_ptr<Shader> pshader_{nullptr};
-    std::shared_ptr<Shader> pfont_shader_{nullptr};
-    std::shared_ptr<Texture> ptexture_{nullptr};
-    std::shared_ptr<Font> pfont_{nullptr};
-
-    Mix_Music* pmusic_{nullptr};
-    Mix_Chunk* psoundfx_{nullptr};
 };
 
 struct AudioContext {
@@ -54,8 +45,8 @@ using SolStatePtr = std::shared_ptr<sol::state>;
 using CameraPtr = std::shared_ptr<Camera>;
 using BatchRendererPtr = std::shared_ptr<BatchRenderer>;
 using TextBatchRendererPtr = std::shared_ptr<TextBatchRenderer>;
-using TempAssetsPtr = std::shared_ptr<TempAssets>;
 using AudioCtxPtr = std::shared_ptr<AudioContext>;
+using AssetManagerPtr = std::shared_ptr<AssetManager>;
 
 class Game {
 public:

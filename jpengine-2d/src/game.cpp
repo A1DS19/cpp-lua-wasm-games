@@ -7,6 +7,7 @@
 #include "rendering/batch-renderer.hpp"
 #include "rendering/camera.hpp"
 #include "rendering/default-shaders.hpp"
+#include "rendering/font.hpp"
 #include "rendering/shader.hpp"
 #include "rendering/text-batch-renderer.hpp"
 #include "rendering/texture.hpp"
@@ -14,7 +15,7 @@
 #include "scripting/glm_bindings.hpp"
 #include "sounds/music_player.hpp"
 #include "sounds/sound_player.hpp"
-#include "utils/asset-loader.hpp"
+#include "utils/asset-manager.hpp"
 
 #include <glm/ext/vector_float2.hpp>
 #include <memory>
@@ -124,8 +125,8 @@ bool Game::initialize_registry() {
     pregistry_->add_to_context<InputCtxPtr>(std::move(pinput_context));
     pregistry_->add_to_context<BatchRendererPtr>(std::make_shared<BatchRenderer>());
     pregistry_->add_to_context<TextBatchRendererPtr>(std::make_shared<TextBatchRenderer>());
+    pregistry_->add_to_context<AssetManagerPtr>(std::make_shared<AssetManager>());
 
-    pregistry_->add_to_context<TempAssetsPtr>(std::make_shared<TempAssets>());
     return true;
 }
 
@@ -155,21 +156,16 @@ bool Game::load_main_script() {
 }
 
 bool Game::load_shaders() {
-    auto& ptemp_assets = pregistry_->get_context<TempAssetsPtr>();
-
-    ptemp_assets->pshader_ = jpengine::utils::AssetLoader::load_shader_from_memory(
-        DefaultShaders::basic_shader_vert, DefaultShaders::basic_shader_frag);
-
-    if (ptemp_assets->pshader_ == nullptr) {
-        std::cerr << "failed to load basic shaders\n";
+    auto& passet_manager = pregistry_->get_context<AssetManagerPtr>();
+    if (!passet_manager->add_shader_from_memory("basic", DefaultShaders::basic_shader_vert,
+                                                DefaultShaders::basic_shader_frag)) {
+        std::cerr << "could not load basic shaders from memory\n";
         return false;
     }
 
-    ptemp_assets->pfont_shader_ = jpengine::utils::AssetLoader::load_shader_from_memory(
-        DefaultShaders::font_shader_vert, DefaultShaders::font_shader_frag);
-
-    if (ptemp_assets->pfont_shader_ == nullptr) {
-        std::cerr << "failed to load font shaders\n";
+    if (!passet_manager->add_shader_from_memory("font", DefaultShaders::font_shader_vert,
+                                                DefaultShaders::font_shader_frag)) {
+        std::cerr << "could not font shaders from memory\n";
         return false;
     }
 
@@ -330,7 +326,6 @@ void Game::update() {
 }
 
 void Game::render() {
-    auto& ptemp_assets = pregistry_->get_context<TempAssetsPtr>();
     SDL_GL_MakeCurrent(pwindow_, pglcontext_);
     glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -342,21 +337,26 @@ void Game::render() {
     render_sprites();
     render_text();
 
-    ptemp_assets->pshader_->disable();
     SDL_GL_SwapWindow(pwindow_);
 }
 
 void Game::render_text() {
     auto& pcamera = pregistry_->get_context<CameraPtr>();
     auto& ptext_batch_renderer = pregistry_->get_context<TextBatchRendererPtr>();
-    auto& ptemp_assets = pregistry_->get_context<TempAssetsPtr>();
+    auto& passet_manager = pregistry_->get_context<AssetManagerPtr>();
+    auto pfont_shader = passet_manager->get_shader("font");
+
+    if (!pfont_shader) {
+        std::cerr << "could not find font shader\n";
+        return;
+    }
 
     auto text_camera_matrix = pcamera->get_camera_matrix();
     auto text_view = pregistry_->get_registry().view<TextComponent>();
 
     ptext_batch_renderer->begin();
-    ptemp_assets->pfont_shader_->enable();
-    ptemp_assets->pfont_shader_->set_uniform_mat4("u_projection", text_camera_matrix);
+    pfont_shader->enable();
+    pfont_shader->set_uniform_mat4("u_projection", text_camera_matrix);
 
     for (auto entity : text_view) {
         Entity ent{*pregistry_, entity};
@@ -364,24 +364,33 @@ void Game::render_text() {
         if (text.hidden_) {
             continue;
         }
+        auto pfont = passet_manager->get_font(text.font_name_);
+        if (!pfont) {
+            continue;
+        }
         const auto& transform = ent.get_component<TransformComponent>();
-        ptext_batch_renderer->add_text(text.text_, ptemp_assets->pfont_, transform.position_,
-                                       text.color_);
+        ptext_batch_renderer->add_text(text.text_, pfont, transform.position_, text.color_);
     }
 
     ptext_batch_renderer->end();
     ptext_batch_renderer->render();
-    ptemp_assets->pfont_shader_->disable();
+    pfont_shader->disable();
 }
 
 void Game::render_sprites() {
     auto& pcamera = pregistry_->get_context<CameraPtr>();
     auto& pbatch_renderer = pregistry_->get_context<BatchRendererPtr>();
-    auto& ptemp_assets = pregistry_->get_context<TempAssetsPtr>();
+    auto& passet_manager = pregistry_->get_context<AssetManagerPtr>();
+    auto pshader = passet_manager->get_shader("basic");
 
-    ptemp_assets->pshader_->enable();
+    if (!pshader) {
+        std::cerr << "failed to render sprites, shader does not exist\n";
+        return;
+    }
+
+    pshader->enable();
     auto cam_mat = pcamera->get_projection_matrix();
-    ptemp_assets->pshader_->set_uniform_mat4("u_projection", cam_mat);
+    pshader->set_uniform_mat4("u_projection", cam_mat);
 
     auto view = pregistry_->get_registry().view<TransformComponent, SpriteComponent>();
     pbatch_renderer->begin();
@@ -389,9 +398,11 @@ void Game::render_sprites() {
     for (auto entity : view) {
         const auto& transform = view.get<TransformComponent>(entity);
         const auto& sprite = view.get<SpriteComponent>(entity);
+        auto ptexture = passet_manager->get_texture(sprite.string_);
 
-        if (sprite.hidden_ || sprite.string_.empty())
+        if (!ptexture || sprite.hidden_) {
             continue;
+        }
 
         glm::vec4 pos{transform.position_.x, transform.position_.y,
                       sprite.width_ * transform.scale_.x, sprite.height_ * transform.scale_.y};
@@ -399,13 +410,12 @@ void Game::render_sprites() {
         glm::vec4 uvs{sprite.uvs_.u_, sprite.uvs_.v_, sprite.uvs_.uv_widht_,
                       sprite.uvs_.uv_height_};
 
-        pbatch_renderer->add_sprite(pos, uvs, sprite.layer_, ptemp_assets->ptexture_->get_id(),
-                                    sprite.color_);
+        pbatch_renderer->add_sprite(pos, uvs, sprite.layer_, ptexture->get_id(), sprite.color_);
     }
 
     pbatch_renderer->end();
     pbatch_renderer->render();
-    ptemp_assets->pshader_->disable();
+    pshader->disable();
 }
 
 void Game::cleanup() {
@@ -416,37 +426,32 @@ void Game::cleanup() {
 
 // temp
 bool Game::load_temp_assets() {
-    auto& ptemp_assets = pregistry_->get_context<TempAssetsPtr>();
+    auto& passet_manager = pregistry_->get_context<AssetManagerPtr>();
 
-    ptemp_assets->pfont_ = utils::AssetLoader::load_font("assets/fonts/pixel.ttf");
-    if (!ptemp_assets->pfont_) {
+    if (!passet_manager->add_font("pixel", "assets/fonts/pixel.ttf")) {
         std::cerr << "failed to load pixel font" << "\n";
         return false;
     }
 
-    ptemp_assets->ptexture_ =
-        jpengine::utils::AssetLoader::load_texture("assets/textures/character.png", true);
-    if (ptemp_assets->ptexture_ == nullptr) {
+    if (!passet_manager->add_texture("character", "assets/textures/character.png", true)) {
         std::cerr << "failed to load texture [character.png]";
         return false;
     }
 
-    ptemp_assets->pmusic_ =
-        jpengine::utils::AssetLoader::load_music("assets/music/the_field_of_dreams.mp3");
-    if (ptemp_assets->pmusic_ == nullptr) {
+    if (!passet_manager->add_music("field-of-dreams", "assets/music/the_field_of_dreams.mp3")) {
         std::cerr << "failed to load music";
         return false;
     }
 
-    ptemp_assets->psoundfx_ =
-        jpengine::utils::AssetLoader::load_soundfx("assets/soundfx/menu_accept.ogg");
-    if (ptemp_assets->psoundfx_ == nullptr) {
+    if (!passet_manager->add_soundfx("menu-accept", "assets/soundfx/menu_accept.ogg")) {
         std::cerr << "failed to load soundfx";
         return false;
     }
 
-    auto& paudio_context = pregistry_->get_context<AudioCtxPtr>();
-    paudio_context->pmusic_player_->play(ptemp_assets->pmusic_, -1);
+    if (auto pmusic = passet_manager->get_music("field-of-dreams")) {
+        auto& paudio_context = pregistry_->get_context<AudioCtxPtr>();
+        paudio_context->pmusic_player_->play(pmusic, -1);
+    }
 
     return true;
 }
