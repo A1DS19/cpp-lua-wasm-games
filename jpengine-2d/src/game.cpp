@@ -13,6 +13,7 @@
 #include "rendering/texture.hpp"
 #include "rendering/vertex.hpp"
 #include "scripting/glm_bindings.hpp"
+#include "scripting/script_bindings.hpp"
 #include "sounds/music_player.hpp"
 #include "sounds/sound_player.hpp"
 #include "utils/asset-manager.hpp"
@@ -237,6 +238,7 @@ void Game::register_lua_bindings() {
     Keyboard::create_lua_bind(*plua_state, *pinput_context->pkeyboard_);
     Mouse::create_lua_bind(*plua_state, *pinput_context->pmouse_);
     Gamepad::create_lua_bind(*plua_state, *pinput_context->pgamepad_);
+    ScriptFuncBinder::create_lua_bind(*plua_state);
 }
 
 void Game::process_events() {
