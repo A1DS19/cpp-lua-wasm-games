@@ -24,6 +24,9 @@ local text_comp = entity_4:add_component(TextComponent("pixel", "testing from lu
 local text_w = j2d_measure_text(text_comp.text, text_comp.font_name)
 print("text w" .. text_w)
 
+local g_timer = Timer()
+g_timer:start()
+
 local view = registry:get_entities(Transform)
 
 view:for_each(function(entity)
@@ -97,5 +100,7 @@ main = {
 		update_mouse()
 		update_gamepad()
 		play_music()
+
+		print("time: " .. g_timer:elapsed_ms())
 	end,
 }

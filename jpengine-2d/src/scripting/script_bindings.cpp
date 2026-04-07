@@ -1,8 +1,11 @@
 #include "scripting/script_bindings.hpp"
 
+#include "utils/timer.hpp"
+
 #include <SDL_timer.h>
 #include <iostream>
 #include <sol/error.hpp>
+#include <sol/raii.hpp>
 
 using namespace jpengine;
 
@@ -40,4 +43,11 @@ void ScriptFuncBinder::create_lua_bind(sol::state& lua) {
     });
 
     lua.set_function("J2D_GetTicks", [] { return SDL_GetTicks(); });
+
+    lua.new_usertype<utils::Timer>(
+        "Timer", sol::call_constructor, sol::constructors<utils::Timer()>(), "start",
+        &utils::Timer::start, "stop", &utils::Timer::stop, "resume", &utils::Timer::resume, "pause",
+        &utils::Timer::pause, "is_running", &utils::Timer::is_running, "is_paused",
+        &utils::Timer::is_paused, "elapsed_ms", &utils::Timer::elapsed_ms, "elapsed_sec",
+        &utils::Timer::elapsed_sec);
 }
