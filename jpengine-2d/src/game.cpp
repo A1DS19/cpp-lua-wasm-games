@@ -226,6 +226,7 @@ void Game::register_lua_bindings() {
     auto& pcamera = pregistry_->get_context<CameraPtr>();
     auto& passet_manager = pregistry_->get_context<AssetManagerPtr>();
     auto& pinput_context = pregistry_->get_context<InputCtxPtr>();
+    auto& paudio_context = pregistry_->get_context<AudioCtxPtr>();
 
     AssetManager::create_lua_bind(*plua_state, *passet_manager);
     Camera::create_lua_bind(*plua_state, *pcamera);
@@ -238,6 +239,8 @@ void Game::register_lua_bindings() {
     Mouse::create_lua_bind(*plua_state, *pinput_context->pmouse_);
     Gamepad::create_lua_bind(*plua_state, *pinput_context->pgamepad_);
     ScriptFuncBinder::create_lua_bind(*plua_state);
+    MusicPlayer::create_lua_bind(*plua_state, *paudio_context->pmusic_player_, *passet_manager);
+    SoundPlayer::create_lua_bind(*plua_state, *paudio_context->psound_player_, *passet_manager);
 }
 
 void Game::process_events() {
@@ -319,7 +322,11 @@ void Game::process_events() {
 
 void Game::update() {
     if (main_script_.update.valid()) {
-        main_script_.update();
+        auto result = main_script_.update();
+        if (!result.valid()) {
+            sol::error err = result;
+            std::cerr << "lua update error: " << err.what() << "\n";
+        }
     }
 
     pregistry_->get_context<InputCtxPtr>()->update();

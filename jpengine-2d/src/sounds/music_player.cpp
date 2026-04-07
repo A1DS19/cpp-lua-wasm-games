@@ -1,5 +1,7 @@
 #include "sounds/music_player.hpp"
 
+#include "utils/asset-manager.hpp"
+
 #include <SDL2/SDL_audio.h>
 #include <SDL2/SDL_mixer.h>
 #include <SDL2/SDL_stdinc.h>
@@ -72,7 +74,33 @@ void MusicPlayer::set_volume(float volume) {
     return Mix_PlayingMusic();
 }
 
-void MusicPlayer::create_lua_bind(sol::state& lua, MusicPlayer& music_player) {
-    (void)lua;
-    (void)music_player;
+void MusicPlayer::create_lua_bind(sol::state& lua, MusicPlayer& music_player,
+                                  AssetManager& asset_manager) {
+
+    lua.new_usertype<MusicPlayer>(
+        "Music", sol::no_constructor, "play",
+        sol::overload(
+            [&](const std::string& musicName, int loops) {
+                auto pMusic = asset_manager.get_music(musicName);
+                if (!pMusic) {
+                    std::cerr << "Failed to get music [" << musicName
+                              << "] - From the asset maanger!\n";
+                    return;
+                }
+                music_player.play(pMusic, loops);
+            },
+            [&](const std::string& musicName) {
+                auto pMusic = asset_manager.get_music(musicName);
+                if (!pMusic) {
+                    std::cerr << "Failed to get music [" << musicName
+                              << "] - From the asset maanger!\n";
+                    return;
+                }
+                music_player.play(pMusic, -1);
+            }),
+        "stop", [&]() { music_player.stop(); }, "pause", [&]() { music_player.pause(); }, "resume",
+        [&]() { music_player.resume(); }, "set_volume",
+        [&](int volume) { music_player.set_volume(volume); }, "is_playing",
+        [&]() { return music_player.is_playing(); });
+    lua["MusicPlayer"] = &music_player;
 }

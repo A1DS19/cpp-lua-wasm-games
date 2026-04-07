@@ -9,7 +9,7 @@ asset_defs = {
 		{ name = "menu-accept", path = "assets/soundfx/menu_accept.ogg" },
 	},
 	music = {
-		{ name = "field-of-dreams", path = "assets/music/the_field_of_dreams.mp3" },
+		{ name = "the-field-of-dreams", path = "assets/music/the_field_of_dreams.mp3" },
 	},
 	shaders = {
 		-- all shaders are in engine memory

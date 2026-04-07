@@ -1,5 +1,7 @@
 #include "sounds/sound_player.hpp"
 
+#include "utils/asset-manager.hpp"
+
 #include <SDL2/SDL_mixer.h>
 #include <algorithm>
 #include <iostream>
@@ -30,7 +32,30 @@ bool SoundPlayer::is_playing(int channel) {
     return Mix_Playing(channel);
 }
 
-void SoundPlayer::create_lua_bind(sol::state& lua, SoundPlayer& sound_player) {
-    (void)lua;
-    (void)sound_player;
+void SoundPlayer::create_lua_bind(sol::state& lua, SoundPlayer& sound_player,
+                                  AssetManager& asset_manager) {
+    lua.new_usertype<SoundPlayer>(
+        "Sound", sol::no_constructor, "play",
+        sol::overload(
+            [&](const std::string& soundName) {
+                auto pSoundFx = asset_manager.get_soundfx(soundName);
+                if (!pSoundFx) {
+                    std::cerr << "Failed to get [" << soundName << "] from the Asset Manager\n";
+                    return;
+                }
+
+                sound_player.play(pSoundFx);
+            },
+            [&](const std::string& soundName, int loops, int channel) {
+                auto pSoundFx = asset_manager.get_soundfx(soundName);
+                if (!pSoundFx) {
+                    std::cerr << "Failed to get [" << soundName << "] from the Asset Manager.\n";
+                    return;
+                }
+
+                sound_player.play(pSoundFx, loops, channel);
+            }),
+        "stop", [&](int channel) { sound_player.stop(channel); }, "set_volume",
+        [&](int channel, int volume) { sound_player.set_volume(channel, volume); }, "is_playing",
+        [&](int channel) { return sound_player.is_playing(channel); });
 }

@@ -16,7 +16,8 @@ public:
     void stop();
     void set_volume(float volume);
     [[nodiscard]] bool is_playing() const noexcept;
-    static void create_lua_bind(sol::state& lua, MusicPlayer& music_player);
+    static void create_lua_bind(sol::state& lua, MusicPlayer& music_player,
+                                class AssetManager& asset_manager);
 };
 
 } // namespace jpengine

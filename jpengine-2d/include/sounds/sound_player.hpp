@@ -14,6 +14,7 @@ public:
     void stop(int channel);
     bool is_playing(int channel);
 
-    static void create_lua_bind(sol::state& lua, SoundPlayer& sound_player);
+    static void create_lua_bind(sol::state& lua, SoundPlayer& sound_player,
+                                class AssetManager& asset_manager);
 };
 } // namespace jpengine

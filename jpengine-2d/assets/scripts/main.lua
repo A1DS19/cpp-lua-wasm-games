@@ -42,6 +42,12 @@ function update_keyboard()
 	end
 end
 
+function play_music()
+	if Keyboard.just_pressed(KEY_ENTER) and not MusicPlayer.is_playing() then
+		MusicPlayer.play("the-field-of-dreams")
+	end
+end
+
 function update_mouse()
 	if Mouse.just_pressed(LEFT_BTN) then
 		print("left mouse btn pressed")
@@ -88,5 +94,6 @@ main = {
 		update_keyboard()
 		update_mouse()
 		update_gamepad()
+		play_music()
 	end,
 }
