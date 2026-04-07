@@ -20,7 +20,9 @@ sprite_3:generate_uvs(32, 32)
 local registry = Registry()
 local entity_4 = registry:create_entity()
 entity_4:add_component(Transform(200, 200, 1, 1, 0.0))
-entity_4:add_component(TextComponent("pixel", "testing from lua binding"))
+local text_comp = entity_4:add_component(TextComponent("pixel", "testing from lua binding"))
+local text_w = j2d_measure_text(text_comp.text, text_comp.font_name)
+print("text w" .. text_w)
 
 local view = registry:get_entities(Transform)
 

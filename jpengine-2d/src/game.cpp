@@ -17,6 +17,7 @@
 #include "sounds/music_player.hpp"
 #include "sounds/sound_player.hpp"
 #include "utils/asset-manager.hpp"
+#include "utils/utilities.hpp"
 
 #include <glm/ext/vector_float2.hpp>
 #include <memory>
@@ -241,6 +242,7 @@ void Game::register_lua_bindings() {
     ScriptFuncBinder::create_lua_bind(*plua_state);
     MusicPlayer::create_lua_bind(*plua_state, *paudio_context->pmusic_player_, *passet_manager);
     SoundPlayer::create_lua_bind(*plua_state, *paudio_context->psound_player_, *passet_manager);
+    utils::JPEngineUtils::create_lua_bind(*plua_state, *passet_manager);
 }
 
 void Game::process_events() {
