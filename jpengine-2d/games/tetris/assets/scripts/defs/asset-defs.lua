@@ -1,15 +1,18 @@
 asset_defs = {
 	textures = {
-		{ name = "character", path = "assets/textures/character.png", pixel_art = true },
+		{ name = "blocks", path = "assets/textures/blocks.png", pixel_art = true },
 	},
 	fonts = {
 		{ name = "pixel", path = "assets/fonts/pixel.ttf", font_size = 32.0 },
 	},
 	soundfxs = {
-		{ name = "menu-accept", path = "assets/soundfx/menu_accept.ogg" },
+		{ name = "bump", path = "assets/soundfx/bump.wav" },
+		{ name = "death", path = "assets/soundfx/death.wav" },
+		{ name = "finish-row", path = "assets/soundfx/finish_row.wav" },
 	},
 	music = {
-		{ name = "the-field-of-dreams", path = "assets/music/the_field_of_dreams.mp3" },
+		{ name = "game-over", path = "assets/music/game_over.mp3" },
+		{ name = "main-theme", path = "assets/music/main_theme.ogg" },
 	},
 	shaders = {
 		-- all shaders are in engine memory

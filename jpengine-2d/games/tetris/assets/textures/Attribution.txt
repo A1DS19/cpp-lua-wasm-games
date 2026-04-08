@@ -1,4 +1,0 @@
-https://opengameart.org/content/a-platformer-in-the-forest
-
-The character.png file is a derivative of the texture pack above. Also check out the artist's other work here:
-https://opengameart.org/users/buch
