@@ -1,0 +1,20 @@
+{
+  "$schema": "https://raw.githubusercontent.com/LuaLS/vscode-lua/master/setting/schema.json",
+  "Lua.runtime.version": "Lua 5.4",
+  "Lua.workspace.library": ["engine-defs"],
+  "Lua.workspace.checkThirdParty": false,
+  "Lua.diagnostics.globals": [
+    "J2D_WHITE", "J2D_RED", "J2D_GREEN", "J2D_BLUE",
+    "J2D_BLACK", "J2D_YELLOW", "J2D_MAGENTA",
+    "AssetManager", "MusicPlayer", "SoundPlayer", "Camera",
+    "Keyboard", "Mouse", "Gamepad",
+    "LEFT_BTN", "MIDDLE_BTN", "RIGHT_BTN",
+    "DPAD_UP", "DPAD_DOWN", "DPAD_LEFT", "DPAD_RIGHT",
+    "GP_BTN_A", "GP_BTN_B", "GP_BTN_X", "GP_BTN_Y",
+    "GP_BTN_BACK", "GP_BTN_GUIDE", "GP_BTN_START",
+    "GP_LSTICK", "GP_RSTICK", "GP_LSHOULDER", "GP_RSHOULDER",
+    "AXIS_X1", "AXIS_Y1", "AXIS_X2", "AXIS_Y2", "AXIS_Z1", "AXIS_Z2",
+    "j2d_run_script", "j2d_load_script_table", "J2D_GetTicks",
+    "j2d_measure_text", "j2d_right_align_text", "j2d_center_align_text"
+  ]
+}
