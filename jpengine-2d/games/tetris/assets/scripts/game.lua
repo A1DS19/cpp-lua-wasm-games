@@ -134,50 +134,60 @@ function Game:update_score(num_rows)
 end
 
 function Game:update()
-  if self.game_over then
-    self:on_game_over()
-    return
-  end
+	if self.game_over then
+		self:on_game_over()
+		return
+	end
 
-  self:update_tetromino(self.current_tet)
+	self:update_tetromino(self.current_tet)
 end
 
 function Game:check_level_up()
-  -- handle level up
+	local level_data = level_data[self.level]
+	if not level_data then
+		return
+	end
+
+	if self.lines_cleared >= level_data.lines_to_next_level then
+		self.level = self.level + 1
+		self.drop_time = level_data.drop_speed
+		local text = self.level_text:get_component(TextComponent)
+		text.text = tostring(self.level)
+	end
 end
 
 function Game:on_game_over()
-  -- handle game over
+	-- handle game over
 end
 
 function Game:lock_tetromino()
-  if not self.current_tet:lock_to_grid(self.grid) then
-    SoundPlayer.play("death")
-    MusicPlayer.stop()
-    MusicPlayer.play("game-over", 1)
-    self.game_over_text:get_component(TextComponent).hidden = false
-    return false
-  end
+	if not self.current_tet:lock_to_grid(self.grid) then
+		SoundPlayer.play("death")
+		MusicPlayer.stop()
+		MusicPlayer.play("game-over", 1)
+		self.game_over_text:get_component(TextComponent).hidden = false
+		return false
+	end
 
-  self.current_tet = nil
-  self.current_tet = self.next_tet
-  self.next_tet = nil
-  self.next_tet = get_random_tetromino()
-  self.next_tet:move(self.next_pos.y, self.next_pos.x)
+	self.current_tet = nil
+	self.current_tet = self.next_tet
+	self.next_tet = nil
+	self.next_tet = get_random_tetromino()
+	self.next_tet:move(self.next_pos.y, self.next_pos.x)
 
-  self.current_tet:reset()
-  self.current_tet:move(self.start_pos.y, self.start_pos.x)
+	self.current_tet:reset()
+	self.current_tet:move(self.start_pos.y, self.start_pos.x)
 
-  SoundPlayer.play("bump")
+	SoundPlayer.play("bump")
 
-  local num_rows_cleared = self.grid:clear_full_rows()
-  if num_rows_cleared > 0 then
-    SoundPlayer.play("finish-row")
-    self:update_score(num_rows_cleared)
-    self.lines_cleared = self.lines_cleared + num_rows_cleared
-  end
+	local num_rows_cleared = self.grid:clear_full_rows()
+	if num_rows_cleared > 0 then
+		SoundPlayer.play("finish-row")
+		self:update_score(num_rows_cleared)
+		self.lines_cleared = self.lines_cleared + num_rows_cleared
+	end
 
-  self:check_level_up()
-  self.drop_timer:restart()
-  return true
+	self:check_level_up()
+	self.drop_timer:restart()
+	return true
 end
