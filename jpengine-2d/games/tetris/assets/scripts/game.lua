@@ -8,6 +8,7 @@ function Game:create(params)
 		current_tet = get_random_tetromino(),
 		next_tet = get_random_tetromino(),
 		game_timer = Timer(),
+		drop_timer = Timer(),
 		drop_time = 2000,
 		start_pos = vec2(0, 0),
 		next_pos = vec2(0, 0),
@@ -64,6 +65,119 @@ function Game:create(params)
 	this.level_text:add_component(TextComponent("pixel32", "1"))
 
 	this.game_timer:start()
+	this.drop_timer:start()
+
+	MusicPlayer.play("main-theme")
+
 	setmetatable(this, self)
 	return this
+end
+
+function Game:update_tetromino(tet)
+	if Keyboard.just_pressed(KEY_S) then
+		if tet:can_move(self.grid, 1, 0) then
+			tet:move(1, 0)
+		end
+	elseif Keyboard.just_pressed(KEY_A) then
+		if tet:can_move(self.grid, 0, -1) then
+			tet:move(0, -1)
+		end
+	elseif Keyboard.just_pressed(KEY_D) then
+		if tet:can_move(self.grid, 0, 1) then
+			tet:move(0, 1)
+		end
+	elseif Keyboard.just_pressed(KEY_E) then
+		if tet:can_rotate(self.grid, true) then
+			tet:do_rotate_clockwise()
+		end
+	elseif Keyboard.just_pressed(KEY_Q) then
+		if tet:can_rotate(self.grid, false) then
+			tet:do_rotate_counter_clockwise()
+		end
+	end
+
+	local try_lock = false
+	if self.drop_timer:elapsed_ms() >= self.drop_time then
+		if tet:can_move(self.grid, 1, 0) then
+			tet:move(1, 0)
+			self.drop_timer:stop()
+			self.drop_timer:start()
+		else
+			try_lock = true
+		end
+	end
+
+	if try_lock then
+		if not self:lock_tetromino() then
+			self.game_over = true
+		end
+	end
+end
+
+function Game:update_score(num_rows)
+	local points = 1
+	if num_rows == 1 then
+		points = 100
+	elseif num_rows == 2 then
+		points = 300
+	elseif num_rows == 3 then
+		points = 500
+	elseif num_rows == 4 then
+		points = 800
+	end
+
+	points = points * self.level
+	self.score_value = self.score_value + points
+
+	local text = self.score_text:get_component(TextComponent)
+	text.text = tostring(self.score_value)
+end
+
+function Game:update()
+  if self.game_over then
+    self:on_game_over()
+    return
+  end
+
+  self:update_tetromino(self.current_tet)
+end
+
+function Game:check_level_up()
+  -- handle level up
+end
+
+function Game:on_game_over()
+  -- handle game over
+end
+
+function Game:lock_tetromino()
+  if not self.current_tet:lock_to_grid(self.grid) then
+    SoundPlayer.play("death")
+    MusicPlayer.stop()
+    MusicPlayer.play("game-over", 1)
+    self.game_over_text:get_component(TextComponent).hidden = false
+    return false
+  end
+
+  self.current_tet = nil
+  self.current_tet = self.next_tet
+  self.next_tet = nil
+  self.next_tet = get_random_tetromino()
+  self.next_tet:move(self.next_pos.y, self.next_pos.x)
+
+  self.current_tet:reset()
+  self.current_tet:move(self.start_pos.y, self.start_pos.x)
+
+  SoundPlayer.play("bump")
+
+  local num_rows_cleared = self.grid:clear_full_rows()
+  if num_rows_cleared > 0 then
+    SoundPlayer.play("finish-row")
+    self:update_score(num_rows_cleared)
+    self.lines_cleared = self.lines_cleared + num_rows_cleared
+  end
+
+  self:check_level_up()
+  self.drop_timer:restart()
+  return true
 end

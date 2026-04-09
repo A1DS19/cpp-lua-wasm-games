@@ -153,6 +153,11 @@ function Tetromino:reset()
 	self.row_offset = 0
 	self.col_offset = 0
 	self.rotation_state = 1
+	local state = self.states[1]
+	for i = 1, #self.blocks do
+		self.blocks[i].row = state[i].row
+		self.blocks[i].col = state[i].col
+	end
 end
 
 function Tetromino:lock_to_grid(grid)

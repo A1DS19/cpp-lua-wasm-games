@@ -10,5 +10,7 @@ load_assets(asset_defs)
 ggame = Game:create()
 
 main = {
-	update = function() end,
+	update = function()
+		ggame:update()
+	end,
 }
