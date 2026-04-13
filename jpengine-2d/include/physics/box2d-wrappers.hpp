@@ -11,7 +11,7 @@ struct BodyDestroyer {
     void operator()(b2Body* pbody) const;
 };
 
-std::shared_ptr<b2Body> make_shared_body(b2Body* pbody) {
+inline std::shared_ptr<b2Body> make_shared_body(b2Body* pbody) {
     return std::shared_ptr<b2Body>(pbody, BodyDestroyer{});
 }
 

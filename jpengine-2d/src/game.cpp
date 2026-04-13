@@ -4,6 +4,7 @@
 #include "inputs/gamepad.hpp"
 #include "inputs/keyboard.hpp"
 #include "inputs/mouse.hpp"
+#include "physics/box2d-wrappers.hpp"
 #include "rendering/batch-renderer.hpp"
 #include "rendering/camera.hpp"
 #include "rendering/default-shaders.hpp"
@@ -19,6 +20,7 @@
 #include "utils/asset-manager.hpp"
 #include "utils/utilities.hpp"
 
+#include <box2d/b2_world.h>
 #include <glm/ext/vector_float2.hpp>
 #include <memory>
 #include <sol/forward.hpp>
@@ -124,6 +126,7 @@ bool Game::initialize_registry() {
     pregistry_->add_to_context<BatchRendererPtr>(std::make_shared<BatchRenderer>());
     pregistry_->add_to_context<TextBatchRendererPtr>(std::make_shared<TextBatchRenderer>());
     pregistry_->add_to_context<AssetManagerPtr>(std::make_shared<AssetManager>());
+    pregistry_->add_to_context<PhysicsWorld>(std::make_shared<b2World>(b2Vec2(0.F, 9.F)));
 
     return true;
 }
