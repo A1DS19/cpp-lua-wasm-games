@@ -122,7 +122,8 @@ std::vector<ObjectData> PhysicsComponent::box_trace(const b2Vec2& lower_bounds,
         return {};
     }
 
-    UserData* pdata = reinterpret_cast<UserData*>(prigid_body_->GetFixtureList()->GetUserData().pointer);
+    UserData* pdata =
+        reinterpret_cast<UserData*>(prigid_body_->GetFixtureList()->GetUserData().pointer);
 
     try {
         auto object_data = std::any_cast<ObjectData>(pdata->user_data_);
