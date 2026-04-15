@@ -1,6 +1,6 @@
 asset_defs = {
 	textures = {
-		{ name = "character", path = "assets/textures/character.png", pixel_art = true },
+		{ name = "characters", path = "assets/textures/characters.png", pixel_art = true },
 	},
 	fonts = {
 		{ name = "pixel", path = "assets/fonts/pixel.ttf", font_size = 32.0 },

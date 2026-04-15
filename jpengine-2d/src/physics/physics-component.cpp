@@ -94,7 +94,7 @@ void PhysicsComponent::init(PhysicsWorld pphysics_world, int window_w, int windo
 
     auto pfixture = prigid_body_->CreateFixture(&fixture_def);
     assert(pfixture && "fixture was created successfully");
-    if (pfixture) {
+    if (!pfixture) {
         std::cerr << "failed to create rigid body fixture\n";
         return;
     }

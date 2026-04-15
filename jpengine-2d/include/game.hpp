@@ -1,5 +1,7 @@
 #pragma once
 
+#include "physics/contact-listener.hpp"
+
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_video.h>
 #include <SDL_mixer.h>
@@ -47,6 +49,9 @@ using BatchRendererPtr = std::shared_ptr<BatchRenderer>;
 using TextBatchRendererPtr = std::shared_ptr<TextBatchRenderer>;
 using AudioCtxPtr = std::shared_ptr<AudioContext>;
 using AssetManagerPtr = std::shared_ptr<AssetManager>;
+using ContactListenerPtr = std::shared_ptr<ContactListener>;
+
+constexpr float ONE_OVER_SIXTY = 1.F / 60.F;
 
 class Game {
 public:
@@ -74,6 +79,7 @@ private:
 
     void process_events();
     void update();
+    void update_physics();
     void render();
 
     void render_text();

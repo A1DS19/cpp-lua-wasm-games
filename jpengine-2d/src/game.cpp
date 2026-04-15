@@ -5,6 +5,7 @@
 #include "inputs/keyboard.hpp"
 #include "inputs/mouse.hpp"
 #include "physics/box2d-wrappers.hpp"
+#include "physics/contact-listener.hpp"
 #include "physics/physics-component.hpp"
 #include "rendering/batch-renderer.hpp"
 #include "rendering/camera.hpp"
@@ -19,10 +20,13 @@
 #include "sounds/music_player.hpp"
 #include "sounds/sound_player.hpp"
 #include "utils/asset-manager.hpp"
+#include "utils/core-data.hpp"
 #include "utils/utilities.hpp"
 
+#include <box2d/b2_body.h>
 #include <box2d/b2_world.h>
 #include <glm/ext/vector_float2.hpp>
+#include <glm/trigonometric.hpp>
 #include <memory>
 #include <sol/forward.hpp>
 #include <sol/optional_implementation.hpp>
@@ -127,7 +131,13 @@ bool Game::initialize_registry() {
     pregistry_->add_to_context<BatchRendererPtr>(std::make_shared<BatchRenderer>());
     pregistry_->add_to_context<TextBatchRendererPtr>(std::make_shared<TextBatchRenderer>());
     pregistry_->add_to_context<AssetManagerPtr>(std::make_shared<AssetManager>());
-    pregistry_->add_to_context<PhysicsWorld>(std::make_shared<b2World>(b2Vec2(0.F, 9.F)));
+
+    auto pphysics_world = std::make_shared<b2World>(b2Vec2(0.F, 9.F));
+    auto pcontact_listener = std::make_shared<ContactListener>();
+    pphysics_world->SetContactListener(pcontact_listener.get());
+
+    pregistry_->add_to_context<PhysicsWorld>(std::move(pphysics_world));
+    pregistry_->add_to_context<ContactListenerPtr>(std::move(pcontact_listener));
 
     return true;
 }
@@ -215,6 +225,7 @@ void Game::register_meta_components() {
     Entity::register_meta_component<TransformComponent>();
     Entity::register_meta_component<RigidBodyComponent>();
     Entity::register_meta_component<TextComponent>();
+    Entity::register_meta_component<PhysicsComponent>();
 
     Registry::register_meta_component<Identification>();
     Registry::register_meta_component<TransformComponent>();
@@ -339,8 +350,81 @@ void Game::update() {
         }
     }
 
+    auto& core_data = CORE_DATA();
+    if (core_data.is_physics_enabled() && !core_data.is_physics_paused()) {
+        auto& pphysics_world = pregistry_->get_context<PhysicsWorld>();
+        pphysics_world->Step(ONE_OVER_SIXTY, core_data.get_velocity_iterations(),
+                             core_data.get_position_iterations());
+
+        update_physics();
+    }
+
     pregistry_->get_context<InputCtxPtr>()->update();
     pregistry_->get_context<CameraPtr>()->update();
+}
+
+void Game::update_physics() {
+    auto& core_data = CORE_DATA();
+
+    const float half_scaled_w = core_data.get_scaled_w() * 0.5F;
+    const float half_scaled_h = core_data.get_scaled_h() * 0.5F;
+    const float m2p = core_data.meters_to_pixels();
+
+    auto box_view =
+        pregistry_->get_registry().view<PhysicsComponent, TransformComponent, BoxColider>();
+    for (auto entity : box_view) {
+        auto& physics = box_view.get<PhysicsComponent>(entity);
+        auto prigid_body = physics.get_body();
+        if (!prigid_body) {
+            continue;
+        }
+        if (prigid_body->GetType() == b2BodyType::b2_staticBody) {
+            continue;
+        }
+        auto& transform = box_view.get<TransformComponent>(entity);
+        auto& box_collider = box_view.get<BoxColider>(entity);
+        const auto& body_position = prigid_body->GetPosition();
+
+        transform.position_.x = (half_scaled_w + body_position.x) * m2p -
+                                (box_collider.width_ * transform.scale_.x) * 0.5F -
+                                box_collider.offset_.x;
+
+        transform.position_.y = (half_scaled_h + body_position.y) * m2p -
+                                (box_collider.height_ * transform.scale_.y) * 0.5F -
+                                box_collider.offset_.y;
+
+        if (!prigid_body->IsFixedRotation()) {
+            transform.rotation_ = glm::degrees(prigid_body->GetAngle());
+        }
+    }
+
+    auto circle_view =
+        pregistry_->get_registry().view<PhysicsComponent, TransformComponent, CircleCollider>();
+    for (auto entity : circle_view) {
+        auto& physics = box_view.get<PhysicsComponent>(entity);
+        auto prigid_body = physics.get_body();
+        if (!prigid_body) {
+            continue;
+        }
+        if (prigid_body->GetType() == b2BodyType::b2_staticBody) {
+            continue;
+        }
+        auto& transform = box_view.get<TransformComponent>(entity);
+        auto& circle_collider = circle_view.get<CircleCollider>(entity);
+        const auto& body_position = prigid_body->GetPosition();
+
+        transform.position_.x = (half_scaled_w + body_position.x) * m2p -
+                                (circle_collider.radius_ * transform.scale_.x) -
+                                circle_collider.offset_.x;
+
+        transform.position_.y = (half_scaled_h + body_position.y) * m2p -
+                                (circle_collider.radius_ * transform.scale_.y) -
+                                circle_collider.offset_.y;
+
+        if (!prigid_body->IsFixedRotation()) {
+            transform.rotation_ = glm::degrees(prigid_body->GetAngle());
+        }
+    }
 }
 
 void Game::render() {
