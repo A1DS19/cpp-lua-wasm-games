@@ -40,5 +40,26 @@ physics_attr2.bfixed_rotation = true
 gplayer2:add_component(PhysicsComp(physics_attr2))
 
 main = {
-	update = function() end,
+	update = function()
+		draw_rect(Rect(vec2(50, 50), vec2(100, 100), Color(200, 175, 23, 255), true))
+		draw_rect(Rect(vec2(200, 50), vec2(80, 80), J2D_RED, false))
+
+		draw_triangle(Triangle(vec2(320, 60), 100, 100, J2D_GREEN, false))
+		draw_triangle(Triangle(vec2(450, 60), 100, 100, J2D_BLUE, true))
+
+		draw_circle(Circle(vec2(620, 100), 40, J2D_MAGENTA, 64, false))
+		draw_circle(Circle(vec2(720, 100), 40, J2D_YELLOW, 64, true))
+
+		draw_polygon(Polygon({
+			vec2(100, 300), vec2(160, 260), vec2(220, 300),
+			vec2(200, 370), vec2(120, 370),
+		}, J2D_GREEN, false))
+
+		draw_polygon(Polygon({
+			vec2(300, 300), vec2(360, 260), vec2(420, 300),
+			vec2(400, 370), vec2(320, 370),
+		}, J2D_WHITE, true))
+
+		draw_line(Line(vec2(500, 260), vec2(700, 380), J2D_RED))
+	end,
 }

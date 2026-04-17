@@ -1,5 +1,6 @@
 #include "rendering/shape-batch-renderer.hpp"
 
+#include "rendering/batch-renderer.hpp"
 #include "rendering/vertex.hpp"
 
 #include <cmath>
@@ -39,14 +40,18 @@ void ShapeRenderer::begin() {
 void ShapeRenderer::end() {
     glBindBuffer(GL_ARRAY_BUFFER, vbo_);
     glBufferSubData(GL_ARRAY_BUFFER, 0, vertices_.size() * sizeof(ShapeVertex), vertices_.data());
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo_);
     glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, 0, indices_.size() * sizeof(unsigned int),
                     indices_.data());
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     glBindBuffer(GL_ARRAY_BUFFER, line_vbo_);
     glBufferSubData(GL_ARRAY_BUFFER, 0, line_vertices_.size() * sizeof(ShapeVertex),
                     line_vertices_.data());
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void ShapeRenderer::render() {
@@ -55,6 +60,8 @@ void ShapeRenderer::render() {
 
     glBindVertexArray(line_vao_);
     glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(line_vertices_.size()));
+
+    glBindVertexArray(0);
 }
 
 void ShapeRenderer::add_rectangle(const glm::vec2& position, const glm::vec2& size,
@@ -104,7 +111,7 @@ void ShapeRenderer::add_circle(const glm::vec2& center, float radius, const Colo
         vertices_.emplace_back(center + offset, color);
     }
 
-    for (int j = 0; j < segments; j++) {
+    for (int j = 0; j <= segments; j++) {
         indices_.push_back(i);
         indices_.push_back(i + j);
         indices_.push_back(i + (j % segments) + 1);
@@ -124,7 +131,7 @@ void ShapeRenderer::add_polygon(const std::vector<glm::vec2>& points, const Colo
         vertices_.emplace_back(point, color);
     }
 
-    for (size_t j = 1; points.size() < 1; j++) {
+    for (size_t j = 1; j < points.size() - 1; j++) {
         indices_.push_back(i);
         indices_.push_back(i + j);
         indices_.push_back(i + j + 1);

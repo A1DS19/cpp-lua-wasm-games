@@ -7,6 +7,7 @@
 #include <SDL_mixer.h>
 #include <memory>
 #include <sol/sol.hpp>
+#include <vector>
 
 namespace jpengine {
 
@@ -23,6 +24,7 @@ class TextBatchRenderer;
 class MusicPlayer;
 class SoundPlayer;
 class AssetManager;
+class ShapeRenderer;
 
 struct MainGameScripts {
     sol::protected_function update{sol::lua_nil_t{}};
@@ -50,6 +52,7 @@ using TextBatchRendererPtr = std::shared_ptr<TextBatchRenderer>;
 using AudioCtxPtr = std::shared_ptr<AudioContext>;
 using AssetManagerPtr = std::shared_ptr<AssetManager>;
 using ContactListenerPtr = std::shared_ptr<ContactListener>;
+using ShapeRenderPtr = std::shared_ptr<ShapeRenderer>;
 
 constexpr float ONE_OVER_SIXTY = 1.F / 60.F;
 
@@ -85,6 +88,8 @@ private:
     void render_text();
     void render_sprites();
     void cleanup();
+
+    void render_shapes();
 };
 
 } // namespace jpengine

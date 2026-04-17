@@ -85,6 +85,8 @@ void BatchRenderer::render() {
         glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(batch->num_indices_), GL_UNSIGNED_INT,
                        reinterpret_cast<void*>(sizeof(GLuint) * batch->offset_));
     }
+
+    glBindVertexArray(0);
 }
 
 void BatchRenderer::create_batches() {
@@ -125,6 +127,8 @@ void BatchRenderer::create_batches() {
                  nullptr, GL_DYNAMIC_DRAW);
     glBufferSubData(GL_ARRAY_BUFFER, 0, static_cast<GLsizeiptr>(vertices.size() * sizeof(Vertex)),
                     vertices.data());
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void BatchRenderer::init() {
@@ -161,4 +165,6 @@ void BatchRenderer::init() {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ibo_);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(GLuint) * MAX_INDICES, indices_arr.get(),
                  GL_STATIC_DRAW);
+
+    glBindVertexArray(0);
 }

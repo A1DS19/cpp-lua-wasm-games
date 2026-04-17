@@ -12,6 +12,8 @@
 #include "rendering/default-shaders.hpp"
 #include "rendering/font.hpp"
 #include "rendering/shader.hpp"
+#include "rendering/shape-batch-renderer.hpp"
+#include "rendering/shape.hpp"
 #include "rendering/text-batch-renderer.hpp"
 #include "rendering/texture.hpp"
 #include "rendering/vertex.hpp"
@@ -23,6 +25,7 @@
 #include "utils/core-data.hpp"
 #include "utils/utilities.hpp"
 
+#include <array>
 #include <box2d/b2_body.h>
 #include <box2d/b2_world.h>
 #include <glm/ext/vector_float2.hpp>
@@ -34,6 +37,7 @@
 #include <sol/types.hpp>
 #include <string_view>
 #include <sys/ucontext.h>
+#include <vector>
 #ifdef __APPLE__
     #include <OpenGL/gl3.h>
 #else
@@ -131,6 +135,9 @@ bool Game::initialize_registry() {
     pregistry_->add_to_context<BatchRendererPtr>(std::make_shared<BatchRenderer>());
     pregistry_->add_to_context<TextBatchRendererPtr>(std::make_shared<TextBatchRenderer>());
     pregistry_->add_to_context<AssetManagerPtr>(std::make_shared<AssetManager>());
+    pregistry_->add_to_context<ShapeRenderPtr>(std::make_shared<ShapeRenderer>());
+    pregistry_->add_to_context<ShapeContainer>(
+        std::make_shared<std::vector<std::shared_ptr<IShape>>>());
 
     auto pphysics_world = std::make_shared<b2World>(b2Vec2(0.F, 9.F));
     auto pcontact_listener = std::make_shared<ContactListener>();
@@ -180,6 +187,12 @@ bool Game::load_shaders() {
     if (!passet_manager->add_shader_from_memory("font", DefaultShaders::font_shader_vert,
                                                 DefaultShaders::font_shader_frag)) {
         std::cerr << "could not font shaders from memory\n";
+        return false;
+    }
+
+    if (!passet_manager->add_shader_from_memory("shape", DefaultShaders::shape_shader_vert,
+                                                DefaultShaders::shape_shader_frag)) {
+        std::cerr << "could not shape shaders from memory\n";
         return false;
     }
 
@@ -262,6 +275,7 @@ void Game::register_lua_bindings() {
     SoundPlayer::create_lua_bind(*plua_state, *paudio_context->psound_player_, *passet_manager);
     utils::JPEngineUtils::create_lua_bind(*plua_state, *passet_manager);
     PhysicsComponent::create_lua_bind(*plua_state, pphysics_world);
+    ShapeBinder::create_lua_bind(*plua_state, *pregistry_);
 }
 
 void Game::process_events() {
@@ -438,6 +452,7 @@ void Game::render() {
 
     render_sprites();
     render_text();
+    render_shapes();
 
     SDL_GL_SwapWindow(pwindow_);
 }
@@ -524,4 +539,33 @@ void Game::cleanup() {
     SDL_GL_DeleteContext(pglcontext_);
     SDL_DestroyWindow(pwindow_);
     SDL_Quit();
+}
+
+void Game::render_shapes() {
+    auto& pcamera = pregistry_->get_context<CameraPtr>();
+    auto& pshape_renderer = pregistry_->get_context<ShapeRenderPtr>();
+    auto& passet_manager = pregistry_->get_context<AssetManagerPtr>();
+    auto pshader = passet_manager->get_shader("shape");
+    auto& pshape_container = pregistry_->get_context<ShapeContainer>();
+
+    if (!pshader) {
+        std::cerr << "failed to render shapes, shader does not exist\n";
+        return;
+    }
+
+    pshader->enable();
+    auto cam_mat = pcamera->get_camera_matrix();
+    pshader->set_uniform_mat4("u_projection", cam_mat);
+
+    pshape_renderer->begin();
+
+    for (const auto& pshape : *pshape_container) {
+        pshape->submit(*pshape_renderer);
+    }
+
+    pshape_renderer->end();
+    pshape_renderer->render();
+    pshader->disable();
+
+    pshape_container->clear();
 }

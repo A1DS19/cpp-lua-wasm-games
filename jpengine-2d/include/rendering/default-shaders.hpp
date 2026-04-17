@@ -7,5 +7,8 @@ struct DefaultShaders {
 
     static const char* font_shader_vert;
     static const char* font_shader_frag;
+
+    static const char* shape_shader_vert;
+    static const char* shape_shader_frag;
 };
 } // namespace jpengine
