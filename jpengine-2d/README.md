@@ -115,19 +115,70 @@ jpengine-2d/
 
 ## Lua API
 
-The engine exposes the following globals to Lua scripts:
+Type stubs for every global and usertype live in `engine-defs/` (loaded by Lua LSP via `.luarc.json`). High-level overview:
+
+### ECS
 
 | Global | Description |
 |--------|-------------|
-| `Entity()` | Create an entity |
-| `Registry()` | Get the ECS registry |
-| `AssetManager` | Load/get textures, fonts, music, sound effects |
-| `MusicPlayer` | Play, pause, stop, resume music |
-| `Keyboard` | Key input (`pressed`, `just_pressed`, `just_released`) |
-| `Mouse` | Mouse input (`just_pressed`, `screen_position`) |
-| `Gamepad` | Gamepad input (`pressed`, `get_axis_position`) |
-| `Camera` | Camera control |
+| `Entity()` / `Entity(registry)` | Create or wrap an entity (`add_component`, `get_component`, `has_component`, `remove_component`, `destroy`, `id`) |
+| `Registry()` | ECS registry (`create_entity`, `get_entities(...)` → `runtime_view`) |
+
+### Components
+
+| Component | Purpose |
+|-----------|---------|
+| `Transform` | Position, scale, rotation |
+| `Sprite` | Textured quad (layer, UVs, tint, hidden) |
+| `TextComponent` | Rendered text (font, color, hidden) |
+| `Identification` | `tag`, `group`, `entity_id` |
+| `RigidBody` | Simple velocity + max-velocity component |
+| `BoxCollider` | AABB collider (`width`, `height`, `offset`, `active`) |
+| `CircleCollider` | Radius collider (`radius`, `offset`, `trigger`, `active`) |
+| `Animation` | Spritesheet animation (frames, rate, looped) |
+| `PhysicsComp` | Box2D-backed body — built from a `PhysicsAttributes` table; supports `set/get_linear_velocity`, `set/get_angular_velocity`, `linear_impulse`, `angular_impulse`, `set/get_gravity_scale`, `set_transform`, `set_body_type`, `set_bullet`, `cast_ray(p1, p2)`, `box_trace(lower, upper)`, `object_data()` |
+
+Physics helpers: `PhysicsAttributes{...}` (table-constructible), `ObjectData{tag, group, collider, trigger, is_friendly, entity_id}`, `BodyType.Static / Kinematic / Dynamic`.
+
+### Rendering
+
+| Global | Description |
+|--------|-------------|
+| `Color(r, g, b, a)` | Color value; presets: `J2D_WHITE`, `J2D_BLACK`, `J2D_RED`, `J2D_GREEN`, `J2D_BLUE`, `J2D_YELLOW`, `J2D_MAGENTA` |
+| `UV(u, v, w, h)` | Spritesheet sub-region |
+| `Rect(pos, size, color, wireframe)` | Rectangle shape |
+| `Circle(center, radius, color, segments, wireframe)` | Circle shape |
+| `Triangle(pos, base, height, color, wireframe)` | Triangle shape |
+| `Polygon(points, color, wireframe)` | Polygon shape (`points` is a table of `vec2`) |
+| `Line(p1, p2, color)` | Line segment |
+| `draw_rect` / `draw_circle` / `draw_triangle` / `draw_polygon` / `draw_line` | Submit a shape to the batch renderer for this frame |
+| `Camera` | `get_position`, `set_position`, `get_scale`, `set_scale` |
+
+### Audio
+
+| Global | Description |
+|--------|-------------|
+| `MusicPlayer` | `play(name[, loops])`, `stop`, `pause`, `resume`, `set_volume(v)`, `is_playing` — call with `.` (no `self`) |
+| `SoundPlayer` | `play(name[, loops, channel])`, `stop(channel)`, `set_volume(v, channel)`, `is_playing(channel)` — call with `.` (no `self`) |
+| `AssetManager` | `add_texture`, `add_font`, `add_music`, `add_soundfx`, and matching `get_*` |
+
+### Input
+
+| Global | Description |
+|--------|-------------|
+| `Keyboard` | `pressed`, `just_pressed`, `just_released` — constants `KEY_A`..`KEY_Z`, `KEY_0`..`KEY_9`, `KEY_SPACE`, `KEY_ENTER`, `KEY_ESC`, `KEY_LEFT/RIGHT/UP/DOWN`, `KEY_F1`..`KEY_F12`, modifiers, numpad |
+| `Mouse` | `pressed`, `just_pressed`, `just_released`, `screen_position`, `wheel_x/y`; buttons `LEFT_BTN`, `MIDDLE_BTN`, `RIGHT_BTN` |
+| `Gamepad` | `is_gamepad_present`, `pressed`, `just_pressed`, `just_released`, `get_axis_position`, `get_hat_value`; buttons (`GP_BTN_A/B/X/Y`, `GP_BTN_BACK/GUIDE/START`, shoulders, sticks), d-pad (`DPAD_*`), axes (`AXIS_X1/Y1/X2/Y2/Z1/Z2`) |
+
+### Utilities
+
+| Global | Description |
+|--------|-------------|
+| `vec2(x, y)` | 2D vector (GLM binding) |
+| `Timer()` | Stopwatch — `start`, `stop`, `pause`, `resume`, `is_running`, `is_paused`, `elapsed_ms`, `elapsed_sec` |
 | `j2d_run_script(path)` | Load and execute another Lua file |
+| `j2d_load_script_table(scripts)` | Load an ordered list of scripts |
+| `J2D_GetTicks()` | Milliseconds since engine start |
 | `j2d_measure_text(text, font)` | Measure rendered text width |
 | `j2d_right_align_text(text, font, pos)` | Right-align x position |
 | `j2d_center_align_text(text, font, pos)` | Center x position |
