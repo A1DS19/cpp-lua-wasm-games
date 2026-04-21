@@ -1,0 +1,53 @@
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * 1'
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+      actions: read
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - project: jpengine-2d
+            apt_packages: libsdl2-dev libsdl2-image-dev libsdl2-mixer-dev libgles2
+          - project: jpengine-3d
+            apt_packages: libgl1-mesa-dev libglu1-mesa-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxext-dev
+
+    name: ${{ matrix.project }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake make g++ ${{ matrix.apt_packages }}
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: c-cpp
+          build-mode: manual
+
+      - name: Build
+        working-directory: ${{ matrix.project }}
+        run: |
+          cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+          cmake --build build --config Release
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:c-cpp/project:${{ matrix.project }}"

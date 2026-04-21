@@ -1,0 +1,28 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: '^(jpengine-2d|jpengine-3d)/(vendor|build|build-wasm|docs)/'
+      - id: end-of-file-fixer
+        exclude: '^(jpengine-2d|jpengine-3d)/(vendor|build|build-wasm|docs)/'
+      - id: check-yaml
+        exclude: '^\.github/workflows/'
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ['--maxkb=2048']
+        exclude: '^(jpengine-2d|jpengine-3d)/(vendor|games/.*/assets|docs)/'
+      - id: mixed-line-ending
+        args: ['--fix=lf']
+
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v19.1.7
+    hooks:
+      - id: clang-format
+        types_or: [c, c++]
+        exclude: '^(jpengine-2d|jpengine-3d)/(vendor|build|build-wasm)/'
+
+  - repo: https://github.com/rhysd/actionlint
+    rev: v1.7.7
+    hooks:
+      - id: actionlint
