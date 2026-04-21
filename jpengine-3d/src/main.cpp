@@ -41,10 +41,12 @@ int main() {
 
     std::vector<float> vertices{
         //  x      y     z     r     g     b
-        0.0F,  0.5F,  0.0F, 1.0F, 0.0F, 0.0F, // vertex 0 — top          (red)
-        -0.5F, -0.5F, 0.0F, 0.0F, 1.0F, 0.0F, // vertex 1 — bottom-left  (green)
-        0.5F,  -0.5F, 0.0F, 0.0F, 0.0F, 1.0F, // vertex 2 — bottom-right (blue)
-    };
+        0.5F,  0.5F,  0.0F, 1.0F, 0.0F, 0.0F, // vertex 0 — top          (red)
+        -0.5F, 0.5F,  0.0F, 0.0F, 1.0F, 0.0F, // vertex 1 — bottom-left  (green)
+        -0.5F, -0.5F, 0.0F, 0.0F, 0.0F, 1.0F, // vertex 2 — bottom-right (blue)
+        0.5F,  -0.5F, 0.0F, 1.0F, 1.0F, 0.0F};
+
+    std::vector<unsigned int> indices = {0, 1, 2, 0, 2, 3};
 
     constexpr GLsizei stride = 6 * sizeof(float);
 
