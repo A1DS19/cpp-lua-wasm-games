@@ -1,0 +1,9 @@
+# LeakSanitizer suppressions for known one-shot allocations inside the
+# Mesa/GLX/Gallium graphics stack. These are triggered the first time
+# glfwCreateWindow initializes a GL context and are not leaks in our code.
+leak:libGLX_mesa.so
+leak:libgallium
+leak:libdrm
+leak:swrast_dri.so
+leak:_glfwInitGLX
+leak:_glfwCreateWindowX11

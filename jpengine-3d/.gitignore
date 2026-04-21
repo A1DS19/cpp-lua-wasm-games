@@ -10,7 +10,6 @@ lib/*
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
-Makefile
 
 # Compiled objects
 *.o
