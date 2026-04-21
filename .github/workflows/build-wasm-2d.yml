@@ -1,10 +1,16 @@
-name: WASM Build
+name: WASM Build (jpengine-2d)
 
 on:
   push:
     branches: [main]
+    paths:
+      - 'jpengine-2d/**'
+      - '.github/workflows/build-wasm-2d.yml'
   pull_request:
     branches: [main]
+    paths:
+      - 'jpengine-2d/**'
+      - '.github/workflows/build-wasm-2d.yml'
 
 jobs:
   build:

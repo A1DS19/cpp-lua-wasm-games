@@ -1,0 +1,33 @@
+name: Linux Build (jpengine-3d)
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'jpengine-3d/**'
+      - '.github/workflows/build-linux-3d.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'jpengine-3d/**'
+      - '.github/workflows/build-linux-3d.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake make g++ libgl1-mesa-dev libglu1-mesa-dev libx11-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libxext-dev
+
+      - name: Configure
+        working-directory: jpengine-3d
+        run: cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        working-directory: jpengine-3d
+        run: cmake --build build --config Release

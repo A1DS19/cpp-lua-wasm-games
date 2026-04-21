@@ -1,7 +1,8 @@
 # JPEngine
 
-[![Linux Build](https://github.com/A1DS19/cpp-lua-wasm-games/actions/workflows/build-linux.yml/badge.svg?branch=main)](https://github.com/A1DS19/cpp-lua-wasm-games/actions/workflows/build-linux.yml)
-[![WASM Build](https://github.com/A1DS19/cpp-lua-wasm-games/actions/workflows/build-wasm.yml/badge.svg?branch=main)](https://github.com/A1DS19/cpp-lua-wasm-games/actions/workflows/build-wasm.yml)
+[![Linux Build (jpengine-2d)](https://github.com/A1DS19/cpp-lua-wasm-games/actions/workflows/build-linux-2d.yml/badge.svg?branch=main)](https://github.com/A1DS19/cpp-lua-wasm-games/actions/workflows/build-linux-2d.yml)
+[![WASM Build (jpengine-2d)](https://github.com/A1DS19/cpp-lua-wasm-games/actions/workflows/build-wasm-2d.yml/badge.svg?branch=main)](https://github.com/A1DS19/cpp-lua-wasm-games/actions/workflows/build-wasm-2d.yml)
+[![Linux Build (jpengine-3d)](https://github.com/A1DS19/cpp-lua-wasm-games/actions/workflows/build-linux-3d.yml/badge.svg?branch=main)](https://github.com/A1DS19/cpp-lua-wasm-games/actions/workflows/build-linux-3d.yml)
 
 A collection of games built with **jpengine-2d**, a custom 2D game engine in C++ with Lua scripting and WebAssembly support.
 
