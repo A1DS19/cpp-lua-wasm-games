@@ -40,10 +40,13 @@ int main() {
     }
 
     std::vector<float> vertices{
-        0.0F,  0.5F,  0.0F, // vertex 0 — top
-        -0.5F, -0.5F, 0.0F, // vertex 1 — bottom-left
-        0.5F,  -0.5F, 0.0F, // vertex 2 — bottom-right
+        //  x      y     z     r     g     b
+        0.0F,  0.5F,  0.0F, 1.0F, 0.0F, 0.0F, // vertex 0 — top          (red)
+        -0.5F, -0.5F, 0.0F, 0.0F, 1.0F, 0.0F, // vertex 1 — bottom-left  (green)
+        0.5F,  -0.5F, 0.0F, 0.0F, 0.0F, 1.0F, // vertex 2 — bottom-right (blue)
     };
+
+    constexpr GLsizei stride = 6 * sizeof(float);
 
     GLuint vbo = 0;
     glGenBuffers(1, &vbo);
@@ -53,8 +56,14 @@ int main() {
     GLuint vao = 0;
     glGenVertexArrays(1, &vao);
     glBindVertexArray(vao);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+
+    // attribute 0 — position (x, y, z)
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, stride, (void*)0);
     glEnableVertexAttribArray(0);
+
+    // attribute 1 — color (r, g, b), offset past the 3 position floats
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -62,9 +71,12 @@ int main() {
     const std::string vertex_shader_src = R"(
         #version 330 core
         layout(location = 0) in vec3 position;
+        layout(location = 1) in vec3 color;
+        out vec3 v_color;
 
         void main() {
             gl_Position = vec4(position, 1.0);
+            v_color = color;
         }
     )";
 
@@ -84,9 +96,10 @@ int main() {
     const std::string fragment_shader_src = R"(
         #version 330 core
         out vec4 frag_color;
+        in vec3 v_color;
 
         void main() {
-            frag_color = vec4(1.0, 0.0, 0.0, 1.0);
+            frag_color = vec4(v_color, 1.0);
         }
     )";
 
