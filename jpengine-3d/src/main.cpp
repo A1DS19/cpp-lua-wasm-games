@@ -1,4 +1,4 @@
-#include "core/macros.hpp"
+#include "utils/macros.hpp"
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -41,7 +41,7 @@ int main() {
     glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
 #endif
 
-    if (!core::macros::convert_to_bool(glfwInit())) {
+    if (!utils::macros::convert_to_bool(glfwInit())) {
         return EXIT_FAILURE;
     }
 
@@ -130,7 +130,7 @@ int main() {
 
     GLint success_vertex_shader = 0;
     glGetShaderiv(vertex_shader, GL_COMPILE_STATUS, &success_vertex_shader);
-    if (!core::macros::convert_to_bool(success_vertex_shader)) {
+    if (!utils::macros::convert_to_bool(success_vertex_shader)) {
         char info_log[512];
         glGetShaderInfoLog(vertex_shader, 512, nullptr, info_log);
         std::cerr << "err vertex shader compilation failed: " << info_log << "\n";
@@ -157,7 +157,7 @@ int main() {
 
     GLint success_fragment_shader = 0;
     glGetShaderiv(fragment_shader, GL_COMPILE_STATUS, &success_fragment_shader);
-    if (!core::macros::convert_to_bool(success_fragment_shader)) {
+    if (!utils::macros::convert_to_bool(success_fragment_shader)) {
         char info_log[512];
         glGetShaderInfoLog(fragment_shader, 512, nullptr, info_log);
         std::cerr << "err fragment shader compilation failed: " << info_log << "\n";
@@ -172,7 +172,7 @@ int main() {
 
     GLint success_program = 0;
     glGetProgramiv(shader_program, GL_LINK_STATUS, &success_program);
-    if (!core::macros::convert_to_bool(success_program)) {
+    if (!utils::macros::convert_to_bool(success_program)) {
         char info_log[512];
         glGetProgramInfoLog(shader_program, 512, nullptr, info_log);
         std::cerr << "err shader program linking failed: " << info_log << "\n";
@@ -186,7 +186,7 @@ int main() {
     GLint u_color_location = glGetUniformLocation(shader_program, "u_color");
     GLint u_offset_location = glGetUniformLocation(shader_program, "u_offset");
 
-    while (!core::macros::convert_to_bool(glfwWindowShouldClose(pwindow))) {
+    while (!utils::macros::convert_to_bool(glfwWindowShouldClose(pwindow))) {
         glClearColor(1.0F, 1.0F, 1.0F, 1.0F);
         glClear(GL_COLOR_BUFFER_BIT);
 
