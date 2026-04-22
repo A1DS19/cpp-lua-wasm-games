@@ -101,13 +101,13 @@ endif()
 # -w suppresses all warnings since we don't own this code.
 file(GLOB_RECURSE VENDOR_SOURCES ${CMAKE_SOURCE_DIR}/vendor/*/src/*.cpp)
 # Exclude libs we build explicitly
-list(FILTER VENDOR_SOURCES EXCLUDE REGEX "/vendor/(glfw-[0-9.]+|glew)/")
+list(FILTER VENDOR_SOURCES EXCLUDE REGEX "/vendor/(glfw-[0-9.]+|glew|glm|stb)/")
 if(VENDOR_SOURCES)
     add_library(vendor STATIC ${VENDOR_SOURCES})
     file(GLOB VENDOR_DIRS LIST_DIRECTORIES true ${CMAKE_SOURCE_DIR}/vendor/*)
     foreach(VENDOR_DIR ${VENDOR_DIRS})
       if(IS_DIRECTORY ${VENDOR_DIR}
-         AND NOT ${VENDOR_DIR} MATCHES "/vendor/(glfw-[0-9.]+|glew)$")
+         AND NOT ${VENDOR_DIR} MATCHES "/vendor/(glfw-[0-9.]+|glew|glm|stb)$")
         target_include_directories(vendor PUBLIC ${VENDOR_DIR}/include)
       endif()
     endforeach()
@@ -135,6 +135,24 @@ target_include_directories(glew PUBLIC ${CMAKE_SOURCE_DIR}/vendor/glew/include)
 target_compile_definitions(glew PUBLIC GLEW_STATIC)
 set_target_properties(glew PROPERTIES COMPILE_FLAGS "-w")
 target_link_libraries(main PRIVATE glew)
+
+# ---------------------------------------------------------------------------
+# GLM — header-only math library (vendor/glm)
+# Headers live directly under vendor/glm/, so include path is vendor/
+# (users #include <glm/glm.hpp>).
+# ---------------------------------------------------------------------------
+add_library(glm INTERFACE)
+target_include_directories(glm INTERFACE ${CMAKE_SOURCE_DIR}/vendor)
+target_link_libraries(main PRIVATE glm)
+
+# ---------------------------------------------------------------------------
+# stb — header-only utilities (vendor/stb)
+# Single-header libraries: #include <stb_image.h>. Exactly one .cpp in the
+# project must #define STB_IMAGE_IMPLEMENTATION (and similar for other stb_*).
+# ---------------------------------------------------------------------------
+add_library(stb INTERFACE)
+target_include_directories(stb INTERFACE ${CMAKE_SOURCE_DIR}/vendor/stb)
+target_link_libraries(main PRIVATE stb)
 
 # ---------------------------------------------------------------------------
 # OpenGL — system framework (macOS) / library (Linux/Windows)
