@@ -41,10 +41,11 @@ int main() {
 
     std::vector<float> vertices{
         //  x      y     z     r     g     b
-        0.5F,  0.5F,  0.0F, 1.0F, 0.0F, 0.0F, // vertex 0 — top          (red)
-        -0.5F, 0.5F,  0.0F, 0.0F, 1.0F, 0.0F, // vertex 1 — bottom-left  (green)
-        -0.5F, -0.5F, 0.0F, 0.0F, 0.0F, 1.0F, // vertex 2 — bottom-right (blue)
-        0.5F,  -0.5F, 0.0F, 1.0F, 1.0F, 0.0F};
+        0.5F,  0.5F,  0.0F, 1.0F, 0.0F, 0.0F, // vertex 0 — top-right    (red)
+        -0.5F, 0.5F,  0.0F, 0.0F, 1.0F, 0.0F, // vertex 1 — top-left     (green)
+        -0.5F, -0.5F, 0.0F, 0.0F, 0.0F, 1.0F, // vertex 2 — bottom-left  (blue)
+        0.5F,  -0.5F, 0.0F, 1.0F, 1.0F, 0.0F, // vertex 3 — bottom-right (yellow)
+    };
 
     std::vector<unsigned int> indices = {0, 1, 2, 0, 2, 3};
 
@@ -54,6 +55,9 @@ int main() {
     glGenBuffers(1, &vbo);
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+
+    GLuint ebo = 0;
+    glGenBuffers(1, &ebo);
 
     GLuint vao = 0;
     glGenVertexArrays(1, &vao);
@@ -66,6 +70,11 @@ int main() {
     // attribute 1 — color (r, g, b), offset past the 3 position floats
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, stride, (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
+
+    // EBO bound and uploaded while the VAO is bound — VAO records the EBO slot.
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, indices.size() * sizeof(unsigned int), indices.data(),
+                 GL_STATIC_DRAW);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -93,6 +102,8 @@ int main() {
         char info_log[512];
         glGetShaderInfoLog(vertex_shader, 512, nullptr, info_log);
         std::cerr << "err vertex shader compilation failed: " << info_log << "\n";
+        glfwTerminate();
+        return EXIT_FAILURE;
     }
 
     const std::string fragment_shader_src = R"(
@@ -116,6 +127,8 @@ int main() {
         char info_log[512];
         glGetShaderInfoLog(fragment_shader, 512, nullptr, info_log);
         std::cerr << "err fragment shader compilation failed: " << info_log << "\n";
+        glfwTerminate();
+        return EXIT_FAILURE;
     }
 
     GLuint shader_program = glCreateProgram();
@@ -129,6 +142,8 @@ int main() {
         char info_log[512];
         glGetProgramInfoLog(shader_program, 512, nullptr, info_log);
         std::cerr << "err shader program linking failed: " << info_log << "\n";
+        glfwTerminate();
+        return EXIT_FAILURE;
     }
 
     glDeleteShader(vertex_shader);
@@ -140,7 +155,8 @@ int main() {
 
         glUseProgram(shader_program);
         glBindVertexArray(vao);
-        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT,
+                       nullptr);
 
         glfwSwapBuffers(pwindow);
         glfwPollEvents();
@@ -149,6 +165,7 @@ int main() {
     glDeleteProgram(shader_program);
     glDeleteVertexArrays(1, &vao);
     glDeleteBuffers(1, &vbo);
+    glDeleteBuffers(1, &ebo);
 
     glfwTerminate();
     return EXIT_SUCCESS;
