@@ -7,6 +7,35 @@
 #include <string>
 #include <vector>
 
+struct vec2 {
+    float x_ = 0.0F;
+    float y_ = 0.0F;
+};
+
+vec2 offset{};
+
+void key_callback(GLFWwindow* pwindow, int key, int scan_code, int action, int mods) {
+    if (action == GLFW_PRESS) {
+        switch (key) {
+            case GLFW_KEY_UP:
+                offset.y_ += 0.03F;
+                break;
+            case GLFW_KEY_DOWN:
+                offset.y_ -= 0.03F;
+                break;
+            case GLFW_KEY_RIGHT:
+                offset.x_ += 0.03F;
+                break;
+            case GLFW_KEY_LEFT:
+                offset.x_ -= 0.03F;
+                break;
+
+            default:
+                break;
+        }
+    }
+}
+
 int main() {
 #ifdef __linux__
     glfwInitHint(GLFW_PLATFORM, GLFW_PLATFORM_X11);
@@ -38,6 +67,8 @@ int main() {
         glfwTerminate();
         return EXIT_FAILURE;
     }
+
+    glfwSetKeyCallback(pwindow, key_callback);
 
     std::vector<float> vertices{
         //  x      y     z     r     g     b
@@ -84,9 +115,10 @@ int main() {
         layout(location = 0) in vec3 position;
         layout(location = 1) in vec3 color;
         out vec3 v_color;
+        uniform vec2 u_offset;
 
         void main() {
-            gl_Position = vec4(position, 1.0);
+            gl_Position = vec4(position.x + u_offset.x, position.y + u_offset.y, position.z, 1.0);
             v_color = color;
         }
     )";
@@ -152,13 +184,17 @@ int main() {
     glDeleteShader(fragment_shader);
 
     GLint u_color_location = glGetUniformLocation(shader_program, "u_color");
+    GLint u_offset_location = glGetUniformLocation(shader_program, "u_offset");
 
     while (!core::macros::convert_to_bool(glfwWindowShouldClose(pwindow))) {
         glClearColor(1.0F, 1.0F, 1.0F, 1.0F);
         glClear(GL_COLOR_BUFFER_BIT);
 
         glUseProgram(shader_program);
+
         glUniform4f(u_color_location, 0.0F, 1.0F, 0.0F, 1.0F);
+        glUniform2f(u_offset_location, offset.x_, offset.y_);
+
         glBindVertexArray(vao);
         glDrawElements(GL_TRIANGLES, static_cast<GLsizei>(indices.size()), GL_UNSIGNED_INT,
                        nullptr);
