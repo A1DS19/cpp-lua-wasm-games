@@ -86,6 +86,8 @@ void Engine::run() {
 
         papplication_->update(delta_time);
 
+        render_queue_.draw(graphics_api_);
+
         glfwSwapBuffers(pwindow_);
     }
 }

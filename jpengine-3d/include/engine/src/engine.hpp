@@ -1,6 +1,8 @@
 #pragma once
 #include "engine/src/application.hpp"
+#include "engine/src/graphics/graphics-api.hpp"
 #include "engine/src/input/input-manager.hpp"
+#include "engine/src/render/render-queue.hpp"
 
 #include <chrono>
 #include <memory>
@@ -23,6 +25,8 @@ public:
     [[nodiscard]] Application* get_application() noexcept { return papplication_.get(); }
     [[nodiscard]] GLFWwindow* get_window() noexcept { return pwindow_; }
     [[nodiscard]] InputManager& get_input_manager() { return input_manager_; }
+    [[nodiscard]] GraphicsApi& get_graphics_api() { return graphics_api_; }
+    [[nodiscard]] RenderQueue& get_render_queue() { return render_queue_; }
 
 private:
     Engine() = default;
@@ -35,6 +39,8 @@ private:
     std::chrono::steady_clock::time_point last_time_point_;
     GLFWwindow* pwindow_ = nullptr;
     InputManager input_manager_;
+    GraphicsApi graphics_api_;
+    RenderQueue render_queue_;
 };
 
 } // namespace engine
