@@ -8,6 +8,10 @@
 namespace engine {
 
 void GameObject::update(float deltatime) {
+    for (auto& component : components_) {
+        component->update(deltatime);
+    }
+
     for (auto it = children_.begin(); it != children_.end();) {
         if ((*it)->is_alive_) {
             (*it)->update(deltatime);

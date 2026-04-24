@@ -2,6 +2,8 @@
 
 #include "GLFW/glfw3.h"
 #include "engine/src/graphics/shader-program.hpp"
+#include "engine/src/render/material.hpp"
+#include "engine/src/scene/components/mesh-component.hpp"
 #include "engine/src/scene/game-object.hpp"
 
 #include <memory>
@@ -33,8 +35,8 @@ TestObject::TestObject() {
 
     auto pshader_program = engine::Engine::get_instance().get_graphics_api().create_shader_program(
         vertex_source, fragment_source);
-
-    material_.set_shader_program(pshader_program);
+    auto material = std::make_shared<engine::Material>();
+    material->set_shader_program(pshader_program);
 
     const std::vector<float> vertices = {
         // position          // color
@@ -60,7 +62,9 @@ TestObject::TestObject() {
         .stride_ = static_cast<uint32_t>(6 * sizeof(float)),
     };
 
-    mesh_ = std::make_unique<engine::Mesh>(layout, vertices, indices);
+    auto mesh = std::make_shared<engine::Mesh>(layout, vertices, indices);
+
+    add_component(new engine::MeshComponent(material, mesh));
 }
 
 void TestObject::update(float deltatime) {
@@ -84,11 +88,4 @@ void TestObject::update(float deltatime) {
     }
 
     set_position(position);
-
-    engine::RenderCommand command;
-    command.material_ = &material_;
-    command.mesh_ = mesh_.get();
-    command.model_matrix_ = get_world_transform();
-
-    engine::Engine::get_instance().get_render_queue().submit(command);
 }

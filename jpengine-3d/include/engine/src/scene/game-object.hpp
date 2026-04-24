@@ -1,6 +1,6 @@
 #pragma once
 
-#include "glm/detail/qualifier.hpp"
+#include "engine/src/scene/component.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
 
 #include <glm/glm.hpp>
@@ -31,6 +31,10 @@ public:
     void set_scale(glm::vec3 scale) { scale_ = scale; }
     [[nodiscard]] glm::mat4 get_local_transform() const;
     [[nodiscard]] glm::mat4 get_world_transform() const;
+    void add_component(Component* component) {
+        components_.emplace_back(component);
+        component->owner_ = this;
+    }
 
 protected:
     GameObject() = default;
@@ -39,6 +43,7 @@ private:
     std::string name_;
     GameObject* parent_ = nullptr;
     std::vector<std::unique_ptr<GameObject>> children_;
+    std::vector<std::unique_ptr<Component>> components_;
     bool is_alive_ = true;
     glm::vec3 position_ = glm::vec3(0.0F);
     glm::vec3 rotation_ = glm::vec3(0.0F);
