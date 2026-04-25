@@ -10,7 +10,7 @@ MeshComponent::MeshComponent(const std::shared_ptr<Material>& material,
                              const std::shared_ptr<Mesh>& mesh)
     : material_{material}, mesh_{mesh} {}
 
-void MeshComponent::update(float deltatime) {
+void MeshComponent::update(float) {
     if (!material_ || !mesh_) {
         return;
     }

@@ -142,7 +142,7 @@ target_link_libraries(main PRIVATE glew)
 # (users #include <glm/glm.hpp>).
 # ---------------------------------------------------------------------------
 add_library(glm INTERFACE)
-target_include_directories(glm INTERFACE ${CMAKE_SOURCE_DIR}/vendor)
+target_include_directories(glm SYSTEM INTERFACE ${CMAKE_SOURCE_DIR}/vendor)
 target_link_libraries(main PRIVATE glm)
 
 # ---------------------------------------------------------------------------
@@ -151,7 +151,7 @@ target_link_libraries(main PRIVATE glm)
 # project must #define STB_IMAGE_IMPLEMENTATION (and similar for other stb_*).
 # ---------------------------------------------------------------------------
 add_library(stb INTERFACE)
-target_include_directories(stb INTERFACE ${CMAKE_SOURCE_DIR}/vendor/stb)
+target_include_directories(stb SYSTEM INTERFACE ${CMAKE_SOURCE_DIR}/vendor/stb)
 target_link_libraries(main PRIVATE stb)
 
 # ---------------------------------------------------------------------------
