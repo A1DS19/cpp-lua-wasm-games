@@ -46,13 +46,13 @@ void PlayerControllerComponent::update(float deltatime) {
         position += front * move_speed_ * deltatime;
     }
     if (input_manager.is_key_pressed(GLFW_KEY_A)) {
-        position += right * move_speed_ * deltatime;
+        position -= right * move_speed_ * deltatime;
     }
     if (input_manager.is_key_pressed(GLFW_KEY_S)) {
         position -= front * move_speed_ * deltatime;
     }
     if (input_manager.is_key_pressed(GLFW_KEY_D)) {
-        position -= right * move_speed_ * deltatime;
+        position += right * move_speed_ * deltatime;
     }
 
     owner_->set_position(position);

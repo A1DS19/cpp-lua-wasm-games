@@ -86,6 +86,9 @@ bool Engine::init() {
 
     glClearColor(0.0F, 0.0F, 0.0F, 1.0F);
 
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+
     return papplication_->init();
 }
 

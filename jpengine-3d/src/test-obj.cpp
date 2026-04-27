@@ -40,16 +40,65 @@ TestObject::TestObject() {
     auto material = std::make_shared<engine::Material>();
     material->set_shader_program(pshader_program);
 
+    // 8 unique corners. Color = each corner's position mapped into [0, 1] for RGB,
+    // so every corner has a distinct color and adjacent faces interpolate smoothly.
     const std::vector<float> vertices = {
-        // position          // color
-        -0.5F, -0.5F, 0.0F, 1.0F, 0.0F, 0.0F, // bottom-left  red
-        0.5F,  -0.5F, 0.0F, 0.0F, 1.0F, 0.0F, // bottom-right green
-        0.5F,  0.5F,  0.0F, 0.0F, 0.0F, 1.0F, // top-right    blue
-        -0.5F, 0.5F,  0.0F, 1.0F, 1.0F, 0.0F, // top-left     yellow
+        //  x      y      z      r     g     b
+        -0.5F, -0.5F, -0.5F, 0.0F, 0.0F, 0.0F, // 0: back-bottom-left   black
+        0.5F,  -0.5F, -0.5F, 1.0F, 0.0F, 0.0F, // 1: back-bottom-right  red
+        0.5F,  0.5F,  -0.5F, 1.0F, 1.0F, 0.0F, // 2: back-top-right     yellow
+        -0.5F, 0.5F,  -0.5F, 0.0F, 1.0F, 0.0F, // 3: back-top-left      green
+        -0.5F, -0.5F, 0.5F,  0.0F, 0.0F, 1.0F, // 4: front-bottom-left  blue
+        0.5F,  -0.5F, 0.5F,  1.0F, 0.0F, 1.0F, // 5: front-bottom-right magenta
+        0.5F,  0.5F,  0.5F,  1.0F, 1.0F, 1.0F, // 6: front-top-right    white
+        -0.5F, 0.5F,  0.5F,  0.0F, 1.0F, 1.0F, // 7: front-top-left     cyan
     };
 
+    // 6 faces × 2 triangles each. Wound counter-clockwise as seen from outside,
+    // so default GL face culling (front = CCW) keeps them all visible.
     const std::vector<uint32_t> indices = {
-        0, 1, 2, 2, 3, 0,
+        // Front (+z)
+        4,
+        5,
+        6,
+        4,
+        6,
+        7,
+        // Back (-z)
+        1,
+        0,
+        3,
+        1,
+        3,
+        2,
+        // Right (+x)
+        5,
+        1,
+        2,
+        5,
+        2,
+        6,
+        // Left (-x)
+        0,
+        4,
+        7,
+        0,
+        7,
+        3,
+        // Top (+y)
+        7,
+        6,
+        2,
+        7,
+        2,
+        3,
+        // Bottom (-y)
+        0,
+        1,
+        5,
+        0,
+        5,
+        4,
     };
 
     engine::VertexLayout layout{
@@ -72,6 +121,12 @@ TestObject::TestObject() {
 void TestObject::update(float deltatime) {
 
     engine::GameObject::update(deltatime);
+
+    // Spin the cube so all 6 faces become visible.
+    auto& rotation = get_rotation();
+    rotation.y += deltatime;          // ~1 rad/s around Y
+    rotation.x += deltatime * 0.5F;   // ~0.5 rad/s around X (slight tilt)
+
 #if 0
     auto& input = engine::Engine::get_instance().get_input_manager();
     auto position = get_position();
