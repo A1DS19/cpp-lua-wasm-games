@@ -10,5 +10,5 @@ public:
     void destroy() override;
 
 private:
-    engine::Scene scene_;
+    engine::Scene* scene_ = nullptr;
 };

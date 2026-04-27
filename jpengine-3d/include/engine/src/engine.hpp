@@ -3,6 +3,7 @@
 #include "engine/src/graphics/graphics-api.hpp"
 #include "engine/src/input/input-manager.hpp"
 #include "engine/src/render/render-queue.hpp"
+#include "engine/src/scene/scene.hpp"
 
 #include <chrono>
 #include <memory>
@@ -27,6 +28,8 @@ public:
     [[nodiscard]] InputManager& get_input_manager() { return input_manager_; }
     [[nodiscard]] GraphicsApi& get_graphics_api() { return graphics_api_; }
     [[nodiscard]] RenderQueue& get_render_queue() { return render_queue_; }
+    void set_scene(Scene* scene) { current_scene_.reset(scene); }
+    [[nodiscard]] Scene* get_current_scene() { return current_scene_.get(); }
 
 private:
     Engine() = default;
@@ -41,6 +44,7 @@ private:
     InputManager input_manager_;
     GraphicsApi graphics_api_;
     RenderQueue render_queue_;
+    std::unique_ptr<Scene> current_scene_;
 };
 
 } // namespace engine

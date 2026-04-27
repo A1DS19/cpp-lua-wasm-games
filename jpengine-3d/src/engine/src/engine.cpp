@@ -1,6 +1,8 @@
 #include "engine/src/engine.hpp"
 
 #include "engine/src/input/input-manager.hpp"
+#include "engine/src/render/render-queue.hpp"
+#include "engine/src/scene/components/camera-component.hpp"
 
 #include <GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -86,7 +88,23 @@ void Engine::run() {
 
         papplication_->update(delta_time);
 
-        render_queue_.draw(graphics_api_);
+        CameraData camera_data;
+        int width = 0;
+        int height = 0;
+        glfwGetWindowSize(pwindow_, &width, &height);
+        float aspect = static_cast<float>(width) / static_cast<float>(height);
+
+        if (current_scene_) {
+            if (auto camera_obj = current_scene_->get_main_camera()) {
+                auto camera_component = camera_obj->get_component<CameraComponent>();
+                if (camera_component) {
+                    camera_data.view_matrix_ = camera_component->get_view_matrix();
+                    camera_data.projection_matrix_ =
+                        camera_component->get_projection_matrix(aspect);
+                }
+            }
+        }
+        render_queue_.draw(graphics_api_, &camera_data);
 
         glfwSwapBuffers(pwindow_);
     }

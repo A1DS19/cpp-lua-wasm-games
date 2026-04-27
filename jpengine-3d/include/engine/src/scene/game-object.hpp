@@ -3,6 +3,7 @@
 #include "engine/src/scene/component.hpp"
 #include "glm/ext/matrix_float4x4.hpp"
 
+#include <cstddef>
 #include <glm/glm.hpp>
 #include <memory>
 #include <string>
@@ -34,6 +35,18 @@ public:
     void add_component(Component* component) {
         components_.emplace_back(component);
         component->owner_ = this;
+    }
+
+    template <std::derived_from<Component> T>
+    T* get_component() {
+        std::size_t type_id = Component::static_type_id<T>();
+        for (auto& component : components_) {
+            if (component->get_type_id() == type_id) {
+                return static_cast<T*>(component.get());
+            }
+        }
+
+        return nullptr;
     }
 
 protected:

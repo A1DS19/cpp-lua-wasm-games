@@ -14,11 +14,16 @@ struct RenderCommand {
     glm::mat4 model_matrix_;
 };
 
+struct CameraData {
+    glm::mat4 view_matrix_;
+    glm::mat4 projection_matrix_;
+};
+
 class RenderQueue {
 
 public:
     void submit(const RenderCommand& command);
-    void draw(class GraphicsApi& graphics_api);
+    void draw(class GraphicsApi& graphics_api, const CameraData* camera_data);
 
 private:
     std::vector<RenderCommand> commands_;
