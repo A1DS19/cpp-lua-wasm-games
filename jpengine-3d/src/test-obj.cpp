@@ -5,7 +5,7 @@
 #include "engine/src/render/material.hpp"
 #include "engine/src/scene/components/mesh-component.hpp"
 #include "engine/src/scene/game-object.hpp"
-#include "utils/asset-path.hpp"
+#include "utils/file-utils.hpp"
 
 #include <glm/gtc/quaternion.hpp>
 #include <memory>
@@ -13,39 +13,8 @@
 
 TestObject::TestObject() {
 
-    const std::string vertex_source = R"(
-    #version 330 core
-    layout(location = 0) in vec3 a_position;
-    layout(location = 1) in vec3 a_color;
-    layout(location = 2) in vec2 a_uv;
-
-    out vec3 v_color;
-    out vec2 v_uv;
-
-    uniform mat4 u_model;
-    uniform mat4 u_view;
-    uniform mat4 u_projection;
-
-    void main() {
-        gl_Position = u_projection * u_view * u_model * vec4(a_position, 1.0);
-        v_color = a_color;
-        v_uv = a_uv;
-    }
-)";
-
-    const std::string fragment_source = R"(
-    #version 330 core
-    in vec3 v_color;
-    in vec2 v_uv;
-    out vec4 frag_color;
-
-    uniform sampler2D brick_texture;
-
-    void main() {
-        vec4 texture_color = texture(brick_texture, v_uv);
-        frag_color = texture_color * vec4(v_color, 1.0);
-    }
-)";
+    auto vertex_source = utils::read_asset_text("shaders/vertex.glsl");
+    auto fragment_source = utils::read_asset_text("shaders/fragment.glsl");
 
     auto pshader_program = engine::Engine::get_instance().get_graphics_api().create_shader_program(
         vertex_source, fragment_source);
