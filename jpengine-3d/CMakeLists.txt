@@ -101,13 +101,13 @@ endif()
 # -w suppresses all warnings since we don't own this code.
 file(GLOB_RECURSE VENDOR_SOURCES ${CMAKE_SOURCE_DIR}/vendor/*/src/*.cpp)
 # Exclude libs we build explicitly
-list(FILTER VENDOR_SOURCES EXCLUDE REGEX "/vendor/(glfw-[0-9.]+|glew|glm|stb)/")
+list(FILTER VENDOR_SOURCES EXCLUDE REGEX "/vendor/(glfw-[0-9.]+|glew|glm|stb|json)/")
 if(VENDOR_SOURCES)
     add_library(vendor STATIC ${VENDOR_SOURCES})
     file(GLOB VENDOR_DIRS LIST_DIRECTORIES true ${CMAKE_SOURCE_DIR}/vendor/*)
     foreach(VENDOR_DIR ${VENDOR_DIRS})
       if(IS_DIRECTORY ${VENDOR_DIR}
-         AND NOT ${VENDOR_DIR} MATCHES "/vendor/(glfw-[0-9.]+|glew|glm|stb)$")
+         AND NOT ${VENDOR_DIR} MATCHES "/vendor/(glfw-[0-9.]+|glew|glm|stb|json)$")
         target_include_directories(vendor PUBLIC ${VENDOR_DIR}/include)
       endif()
     endforeach()
@@ -153,6 +153,14 @@ target_link_libraries(main PRIVATE glm)
 add_library(stb INTERFACE)
 target_include_directories(stb SYSTEM INTERFACE ${CMAKE_SOURCE_DIR}/vendor/stb)
 target_link_libraries(main PRIVATE stb)
+
+# ---------------------------------------------------------------------------
+# nlohmann/json — single-header library (vendor/json/nlohmann/json.hpp)
+# Users include as: #include <nlohmann/json.hpp>
+# ---------------------------------------------------------------------------
+add_library(nlohmann_json INTERFACE)
+target_include_directories(nlohmann_json SYSTEM INTERFACE ${CMAKE_SOURCE_DIR}/vendor/json)
+target_link_libraries(main PRIVATE nlohmann_json)
 
 # ---------------------------------------------------------------------------
 # OpenGL — system framework (macOS) / library (Linux/Windows)

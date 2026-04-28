@@ -25,6 +25,7 @@ public:
     }
     void bind();
     ShaderProgram* get_shader_program() { return pshader_program_.get(); }
+    static std::shared_ptr<Material> load(const std::string& path);
 
 private:
     std::shared_ptr<ShaderProgram> pshader_program_;

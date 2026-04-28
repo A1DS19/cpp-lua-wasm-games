@@ -1,11 +1,9 @@
 #include "test-obj.hpp"
 
 #include "engine/src/graphics/shader-program.hpp"
-#include "engine/src/graphics/texture.hpp"
 #include "engine/src/render/material.hpp"
 #include "engine/src/scene/components/mesh-component.hpp"
 #include "engine/src/scene/game-object.hpp"
-#include "utils/file-utils.hpp"
 
 #include <glm/gtc/quaternion.hpp>
 #include <memory>
@@ -13,15 +11,7 @@
 
 TestObject::TestObject() {
 
-    auto vertex_source = utils::read_asset_text("shaders/vertex.glsl");
-    auto fragment_source = utils::read_asset_text("shaders/fragment.glsl");
-
-    auto pshader_program = engine::Engine::get_instance().get_graphics_api().create_shader_program(
-        vertex_source, fragment_source);
-    auto material = std::make_shared<engine::Material>();
-    auto texture = engine::Texture::load("brick.png");
-    material->set_param("brick-texture", texture);
-    material->set_shader_program(pshader_program);
+    auto material = engine::Material::load("materials/brick.mat");
 
     // 24 vertices (4 per face) so each face can have its own UVs.
     // Each vertex carries position (xyz), color (rgb) and a texture coord (uv).
