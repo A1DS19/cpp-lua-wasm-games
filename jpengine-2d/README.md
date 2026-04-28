@@ -182,3 +182,7 @@ Physics helpers: `PhysicsAttributes{...}` (table-constructible), `ObjectData{tag
 | `j2d_measure_text(text, font)` | Measure rendered text width |
 | `j2d_right_align_text(text, font, pos)` | Right-align x position |
 | `j2d_center_align_text(text, font, pos)` | Center x position |
+
+## Sister project
+
+[**jpengine-3d**](../jpengine-3d/README.md) — a 3D engine started after this one. Native-only OpenGL 3.3 with GLFW/GLEW/GLM, JSON-driven materials, and a basic scene graph. Borrows architectural patterns from jpengine-2d (header-only vendoring, asset path macros, error-handling policy) but does not yet have Lua scripting.

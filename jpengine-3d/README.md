@@ -1,183 +1,172 @@
 # jpengine-3d
 
-Modern C++23 project with cross-platform support and professional development tooling.
+A small 3D game engine written in modern C++23, built as a learning project to render a textured world with a perspective camera. Native-only (no WASM) for now.
 
-## Features
+## What it does
 
-- **Modern C++23** features
-- **Cross-platform** support (Windows, macOS, Linux)
-- **CMake** build system
-- **LSP support** via clangd
-- **Code formatting** with clang-format
-- **Unit testing** framework ready
+- **OpenGL 3.3 core** rendering via GLFW + GLEW
+- **Scene graph** with `GameObject`s, components, and a render queue
+- **JSON-driven materials** (shader paths, uniforms, textures) loaded via nlohmann/json
+- **Texture / mesh / shader-program** wrappers around raw GL resources
+- **Asset path resolution** via a compile-time-baked `JPENGINE_ASSETS_DIR` macro
+- **Header-only vendored dependencies** for reproducible builds
+- **AddressSanitizer + UBSan** in debug builds; `-Werror` on warnings
 
-## Quick Start
+## Tech stack
 
-### Prerequisites
+| Library | Purpose |
+|---------|---------|
+| [GLFW 3.4](https://www.glfw.org/) | Window, input, OpenGL context |
+| [GLEW](https://glew.sourceforge.net/) | OpenGL function loader |
+| [GLM](https://github.com/g-truc/glm) | Math (vectors, matrices, quaternions) |
+| [stb_image](https://github.com/nothings/stb) | PNG/JPG decoding |
+| [nlohmann/json](https://github.com/nlohmann/json) | JSON parsing for material files |
 
-- **CMake 3.25+**
-- **C++23 compatible compiler:**
-  - GCC 13+ (Linux/Windows)
+All dependencies are vendored under `vendor/` — no system-package install required.
+
+## Requirements
+
+- CMake 3.25+
+- C++23 compiler:
   - Clang 15+ (macOS/Linux)
-  - MSVC 2022 (Windows)
+  - GCC 13+ (Linux)
+  - MSVC 2022 (Windows, untested)
+- OpenGL 3.3+ capable GPU/driver
 
-### Building
+```bash
+# macOS
+brew install cmake
+
+# Linux (Ubuntu)
+sudo apt install cmake build-essential libgl1-mesa-dev xorg-dev
+```
+
+## Build
 
 ```bash
 cd jpengine-3d
-make setup-lsp  # Setup LSP for your editor (recommended)
-make build      # or just 'make'
-make run
+make build       # debug build (AddressSanitizer + UBSan + -Werror)
+make run         # build and run
+make release     # optimized release build
 ```
 
-## Development
+Output lands in `bin/main`. Working directory doesn't matter — assets resolve through `JPENGINE_ASSETS_DIR`, baked at configure time.
 
-### Available Make Targets
+See `make help` for the full target list (formatting, doxygen, valgrind, etc.).
 
-**Building**
-```bash
-make build      # Configure CMake and build the project (default)
-make rebuild    # Clean then build from scratch
-make release    # Build optimized release binary (O2, no debug symbols)
-make install    # Install binary to /usr/local/bin (requires sudo)
-make uninstall  # Remove installed binary (requires sudo)
-```
-
-**Running & Testing**
-```bash
-make run        # Build and run the main executable
-make test       # Build and run the test suite
-make debug      # Build and launch with gdb (Linux) or lldb (macOS)
-make valgrind   # Run under Valgrind for memory error detection
-make memcheck   # Comprehensive memory analysis (Valgrind or scripts/memcheck.sh)
-```
-
-**Code Quality**
-```bash
-make format     # Auto-format all .cpp/.hpp/.h files with clang-format
-make analyze    # Run static analysis (scripts/analyze.sh)
-make lint       # Alias for analyze
-make coverage   # Generate code coverage report (scripts/coverage.sh)
-make setup-lsp  # Write .clangd config for editor LSP support
-```
-
-**Verilog**
-```bash
-make sim              # Compile and simulate .v files in sim/ with iverilog
-make wave             # Run sim then open the VCD waveform in GTKWave
-make lint-verilog     # Lint Verilog sources with Verilator (--lint-only -Wall)
-make synth            # Synthesize with Yosys, outputs build/<top>.json
-```
-Override the top module: `make sim VERILOG_TOP=mymodule`
-
-**Maintenance**
-```bash
-make clean      # Remove build artifacts, keep directory structure
-make distclean  # Full clean including CMake cache (forces full reconfigure)
-make deps       # Show required and optional build dependencies
-make check      # Detect installed tools and report what is/isn't found
-make info       # Show project name, platform, build type, file counts
-```
-
-**Development**
-```bash
-make watch      # Auto-rebuild when source files change (requires inotify-tools)
-make benchmark  # Build release and run benchmarks (implement in scripts/)
-make docs       # Generate HTML API docs with Doxygen (also runs on build)
-make open-docs  # Open docs/html/index.html in the default browser
-make help       # Print this target list with short descriptions
-```
-
-### Documentation
-```bash
-sudo apt install doxygen graphviz
-make docs       # Generate HTML docs (also runs automatically on make build)
-```
-Open `docs/html/index.html` in your browser.
-
-### Using Scripts Directly
-```bash
-./scripts/build.sh        # Cross-platform build script
-./scripts/format.sh       # Format code
-./scripts/clean.sh        # Clean build
-./scripts/setup_clangd.sh # Regenerate LSP configuration
-```
-
-## Platform-Specific Notes
-
-### Linux (Ubuntu 24.04+)
-```bash
-sudo apt update
-sudo apt install build-essential cmake g++-13 clang-format
-sudo apt install gdb
-```
-
-### macOS
-```bash
-brew install cmake llvm clang-format
-xcode-select --install
-```
-
-### Windows
-- Install Visual Studio 2022 with C++ workload
-- Or install MSYS2/MinGW-w64 for GCC
-- Install CMake from cmake.org
-
-## Project Structure
+## Project structure
 
 ```
 jpengine-3d/
-├── Makefile           # Cross-platform make targets
-├── CMakeLists.txt     # CMake configuration
-├── .clangd            # LSP configuration
-├── .clang-format      # Code formatting rules
-├── .gitignore
-│
-├── bin/               # Compiled executables
-├── build/             # CMake build files
-├── lib/               # External libraries
-│
-├── include/           # Header files (.hpp, .h)
-│   └── main.hpp
-│
-├── src/               # Source files (.cpp, .cxx)
-│   └── main.cpp
-│
-├── tests/             # Test files
-│   └── test_main.cpp
-│
-└── scripts/           # Build and utility scripts
-    ├── build.sh
-    ├── format.sh
-    ├── clean.sh
-    └── setup_clangd.sh
+├── src/
+│   ├── engine/src/           # Engine implementation (.cpp)
+│   ├── utils/                # File loaders, stb impl
+│   ├── game.cpp              # Application implementation
+│   ├── main.cpp              # Entry point
+│   └── test-obj.cpp          # Demo cube object
+├── include/
+│   ├── engine/
+│   │   ├── engine.hpp        # Umbrella public header
+│   │   └── src/              # Engine internal headers
+│   │       ├── application.hpp
+│   │       ├── engine.hpp
+│   │       ├── graphics/     # GraphicsApi, ShaderProgram, Texture, VertexLayout
+│   │       ├── input/        # InputManager
+│   │       ├── render/       # Material, Mesh, RenderQueue
+│   │       └── scene/        # Scene, GameObject, Component, components/
+│   └── utils/                # asset-path, file-utils, macros
+├── assets/
+│   ├── shaders/              # GLSL files
+│   ├── textures/             # PNGs
+│   └── materials/            # *.mat (JSON)
+├── vendor/                   # Bundled third-party libraries
+│   ├── glfw-3.4/             # Built via add_subdirectory
+│   ├── glew/                 # Built as a static library
+│   ├── glm/                  # Header-only
+│   ├── stb/                  # Header-only (impl in src/utils/stb-impl.cpp)
+│   └── json/                 # Header-only (nlohmann/json)
+├── docs/
+│   └── notes/                # Conceptual notes — read in order
+├── bin/                      # Build output
+├── CMakeLists.txt
+└── Doxyfile
 ```
 
-## Modern C++ Features Used
+## Engine concepts
 
-- C++23 standard library features
-- Auto return type deduction
-- String views for efficient string handling
-- `std::format` for modern string formatting (when available)
+### Lifecycle
 
-## Editor Setup
+`Engine` is a singleton. Each frame:
 
-### LunarVim / Neovim
-1. Run `make setup-lsp` to configure clangd
-2. LSP should work automatically with proper IntelliSense
+```
+glfwPollEvents → Application::update(dt) → RenderQueue draw → swap buffers
+```
 
-### VS Code
-1. Install C/C++ extension
-2. Run `make setup-lsp`
+`Application` is the user-facing extension point — subclass it, override `init`, `update`, `destroy`. See `src/game.cpp`.
 
-### CLion / Other IDEs
-- Import as CMake project
+### Scene graph
 
-## Contributing
+A `Scene` owns `GameObject`s. Each `GameObject` carries:
+- transform (`position`, `rotation` as `glm::quat`, `scale`)
+- a list of `Component`s (typed by a runtime ID injected via the `COMPONENT(...)` macro)
+- optional children
 
-1. Format code before committing: `make format`
-2. Run tests: `make test`
+Built-in components: `CameraComponent`, `MeshComponent`, `PlayerControllerComponent`.
 
-## License
+### Materials
 
-[Add your license here]
+Materials are described in JSON (`assets/materials/*.mat`):
+
+```json
+{
+    "shader": {
+        "vertex":   "shaders/vertex.glsl",
+        "fragment": "shaders/fragment.glsl"
+    },
+    "params": {
+        "textures": [
+            { "name": "brick_texture", "path": "textures/brick.png" }
+        ]
+    }
+}
+```
+
+`Material::load("materials/brick.mat")` reads the file, compiles the shader pair, loads the textures, and returns a ready-to-bind `std::shared_ptr<Material>`. All paths are relative to `assets/`.
+
+### Asset paths
+
+```cpp
+#include "utils/asset-path.hpp"
+#include "utils/file-utils.hpp"
+
+auto p   = utils::asset_path("textures/wall.png");          // std::filesystem::path
+auto src = utils::read_asset_text("shaders/basic.vert");    // std::string, throws on miss
+```
+
+`JPENGINE_ASSETS_DIR` is defined in `CMakeLists.txt` at configure time and baked into the binary, so the executable finds its assets regardless of where it's launched from.
+
+### Error handling policy
+
+- **Exceptions** for fatal load/init errors (asset missing, shader compile fail, GL init fail). Caught once at the top of `main`.
+- **`assert`** for programmer errors and impossible-state checks. Disappears in release.
+- **Return values** for per-frame conditions. No throws in `update()` / `draw()`.
+
+## Documentation
+
+- [`docs/notes/`](./docs/notes/README.md) — conceptual walkthrough of the engine and OpenGL primer. Read the `engine-*.md` files in order.
+- Doxygen: `make docs && open docs/html/index.html`
+
+## Status
+
+Early. The current demo renders a textured spinning cube with a perspective camera. Roadmap (see [`docs/notes/engine-09-roadmap.md`](./docs/notes/engine-09-roadmap.md)):
+
+- [ ] Lighting (directional, point)
+- [ ] glTF model loading (assimp or cgltf)
+- [ ] First-person controller with collision
+- [ ] Lua scripting (sol2 + Lua, matching jpengine-2d's pattern)
+- [ ] Skeletal animation
+- [ ] Shadow mapping
+
+## Sister project
+
+[**jpengine-2d**](../jpengine-2d/README.md) — a 2D engine with Lua scripting and WASM support. Earlier and more feature-complete; jpengine-3d borrows its architectural patterns (asset path macros, header-only vendoring, error-handling policy).

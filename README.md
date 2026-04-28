@@ -5,11 +5,14 @@
 [![Linux Build (jpengine-3d)](https://github.com/A1DS19/cpp-lua-wasm-games/actions/workflows/build-linux-3d.yml/badge.svg?branch=main)](https://github.com/A1DS19/cpp-lua-wasm-games/actions/workflows/build-linux-3d.yml)
 [![CodeQL](https://github.com/A1DS19/cpp-lua-wasm-games/actions/workflows/codeql.yml/badge.svg?branch=main)](https://github.com/A1DS19/cpp-lua-wasm-games/actions/workflows/codeql.yml)
 
-A collection of games built with **jpengine-2d**, a custom 2D game engine in C++ with Lua scripting and WebAssembly support.
+Two custom game engines written in C++, plus the games built with them.
 
-## Engine
+## Engines
 
-- [jpengine-2d](./jpengine-2d/README.md) — engine source, build instructions, and Lua API reference
+| Engine | Stack | Status |
+|--------|-------|--------|
+| [jpengine-2d](./jpengine-2d/README.md) | C++23 + SDL2 + OpenGL ES 3 + **Lua scripting** + WASM | Feature-complete; 2 games shipped |
+| [jpengine-3d](./jpengine-3d/README.md) | C++23 + GLFW + GLEW + GLM + JSON-driven materials | Early — textured cube demo |
 
 ## Games
 
