@@ -4,22 +4,12 @@
 #include "engine/src/scene/components/camera-component.hpp"
 #include "engine/src/scene/components/player-controller-component.hpp"
 #include "test-obj.hpp"
-#include "utils/asset-path.hpp"
 
 #include <glm/glm.hpp>
-#include <iostream>
 #include <stb/stb_image.h>
 
 bool Game::init() {
     scene_ = new engine::Scene();
-
-    int w, h, channels;
-    unsigned char* data =
-        stbi_load(utils::asset_path_str("brick.png").c_str(), &w, &h, &channels, 0);
-
-    if (data) {
-        std::cout << "image loaded\n";
-    }
 
     auto camera = scene_->create_object("camera");
     camera->add_component(new engine::CameraComponent());

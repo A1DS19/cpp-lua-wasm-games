@@ -1,13 +1,15 @@
 #include "test-obj.hpp"
 
-#include "GLFW/glfw3.h"
 #include "engine/src/graphics/shader-program.hpp"
+#include "engine/src/graphics/texture.hpp"
 #include "engine/src/render/material.hpp"
 #include "engine/src/scene/components/mesh-component.hpp"
 #include "engine/src/scene/game-object.hpp"
+#include "utils/asset-path.hpp"
 
 #include <glm/gtc/quaternion.hpp>
 #include <memory>
+#include <stb/stb_image.h>
 
 TestObject::TestObject() {
 
@@ -15,7 +17,10 @@ TestObject::TestObject() {
     #version 330 core
     layout(location = 0) in vec3 a_position;
     layout(location = 1) in vec3 a_color;
+    layout(location = 2) in vec2 a_uv;
+
     out vec3 v_color;
+    out vec2 v_uv;
 
     uniform mat4 u_model;
     uniform mat4 u_view;
@@ -24,94 +29,270 @@ TestObject::TestObject() {
     void main() {
         gl_Position = u_projection * u_view * u_model * vec4(a_position, 1.0);
         v_color = a_color;
+        v_uv = a_uv;
     }
 )";
 
     const std::string fragment_source = R"(
     #version 330 core
     in vec3 v_color;
+    in vec2 v_uv;
     out vec4 frag_color;
+
+    uniform sampler2D brick_texture;
+
     void main() {
-        frag_color = vec4(v_color, 1.0);
+        vec4 texture_color = texture(brick_texture, v_uv);
+        frag_color = texture_color * vec4(v_color, 1.0);
     }
 )";
 
     auto pshader_program = engine::Engine::get_instance().get_graphics_api().create_shader_program(
         vertex_source, fragment_source);
     auto material = std::make_shared<engine::Material>();
+    auto texture = engine::Texture::load("brick.png");
+    material->set_param("brick-texture", texture);
     material->set_shader_program(pshader_program);
 
-    // 8 unique corners. Color = each corner's position mapped into [0, 1] for RGB,
-    // so every corner has a distinct color and adjacent faces interpolate smoothly.
+    // 24 vertices (4 per face) so each face can have its own UVs.
+    // Each vertex carries position (xyz), color (rgb) and a texture coord (uv).
+    // Per-face vertices are listed BL, BR, TR, TL — CCW seen from outside the cube,
+    // so default GL face culling (front = CCW) keeps them all visible.
     const std::vector<float> vertices = {
-        //  x      y      z      r     g     b
-        -0.5F, -0.5F, -0.5F, 0.0F, 0.0F, 0.0F, // 0: back-bottom-left   black
-        0.5F,  -0.5F, -0.5F, 1.0F, 0.0F, 0.0F, // 1: back-bottom-right  red
-        0.5F,  0.5F,  -0.5F, 1.0F, 1.0F, 0.0F, // 2: back-top-right     yellow
-        -0.5F, 0.5F,  -0.5F, 0.0F, 1.0F, 0.0F, // 3: back-top-left      green
-        -0.5F, -0.5F, 0.5F,  0.0F, 0.0F, 1.0F, // 4: front-bottom-left  blue
-        0.5F,  -0.5F, 0.5F,  1.0F, 0.0F, 1.0F, // 5: front-bottom-right magenta
-        0.5F,  0.5F,  0.5F,  1.0F, 1.0F, 1.0F, // 6: front-top-right    white
-        -0.5F, 0.5F,  0.5F,  0.0F, 1.0F, 1.0F, // 7: front-top-left     cyan
+        //   x      y      z      r     g     b      u     v
+        // ---- Front face (+z) ----
+        -0.5F,
+        -0.5F,
+        0.5F,
+        0.0F,
+        0.0F,
+        1.0F,
+        0.0F,
+        0.0F, // BL  blue
+        0.5F,
+        -0.5F,
+        0.5F,
+        1.0F,
+        0.0F,
+        1.0F,
+        1.0F,
+        0.0F, // BR  magenta
+        0.5F,
+        0.5F,
+        0.5F,
+        1.0F,
+        1.0F,
+        1.0F,
+        1.0F,
+        1.0F, // TR  white
+        -0.5F,
+        0.5F,
+        0.5F,
+        0.0F,
+        1.0F,
+        1.0F,
+        0.0F,
+        1.0F, // TL  cyan
+
+        // ---- Back face (-z) ----
+        0.5F,
+        -0.5F,
+        -0.5F,
+        1.0F,
+        0.0F,
+        0.0F,
+        0.0F,
+        0.0F, // BL  red
+        -0.5F,
+        -0.5F,
+        -0.5F,
+        0.0F,
+        0.0F,
+        0.0F,
+        1.0F,
+        0.0F, // BR  black
+        -0.5F,
+        0.5F,
+        -0.5F,
+        0.0F,
+        1.0F,
+        0.0F,
+        1.0F,
+        1.0F, // TR  green
+        0.5F,
+        0.5F,
+        -0.5F,
+        1.0F,
+        1.0F,
+        0.0F,
+        0.0F,
+        1.0F, // TL  yellow
+
+        // ---- Right face (+x) ----
+        0.5F,
+        -0.5F,
+        0.5F,
+        1.0F,
+        0.0F,
+        1.0F,
+        0.0F,
+        0.0F, // BL  magenta
+        0.5F,
+        -0.5F,
+        -0.5F,
+        1.0F,
+        0.0F,
+        0.0F,
+        1.0F,
+        0.0F, // BR  red
+        0.5F,
+        0.5F,
+        -0.5F,
+        1.0F,
+        1.0F,
+        0.0F,
+        1.0F,
+        1.0F, // TR  yellow
+        0.5F,
+        0.5F,
+        0.5F,
+        1.0F,
+        1.0F,
+        1.0F,
+        0.0F,
+        1.0F, // TL  white
+
+        // ---- Left face (-x) ----
+        -0.5F,
+        -0.5F,
+        -0.5F,
+        0.0F,
+        0.0F,
+        0.0F,
+        0.0F,
+        0.0F, // BL  black
+        -0.5F,
+        -0.5F,
+        0.5F,
+        0.0F,
+        0.0F,
+        1.0F,
+        1.0F,
+        0.0F, // BR  blue
+        -0.5F,
+        0.5F,
+        0.5F,
+        0.0F,
+        1.0F,
+        1.0F,
+        1.0F,
+        1.0F, // TR  cyan
+        -0.5F,
+        0.5F,
+        -0.5F,
+        0.0F,
+        1.0F,
+        0.0F,
+        0.0F,
+        1.0F, // TL  green
+
+        // ---- Top face (+y) ----
+        -0.5F,
+        0.5F,
+        0.5F,
+        0.0F,
+        1.0F,
+        1.0F,
+        0.0F,
+        0.0F, // BL  cyan
+        0.5F,
+        0.5F,
+        0.5F,
+        1.0F,
+        1.0F,
+        1.0F,
+        1.0F,
+        0.0F, // BR  white
+        0.5F,
+        0.5F,
+        -0.5F,
+        1.0F,
+        1.0F,
+        0.0F,
+        1.0F,
+        1.0F, // TR  yellow
+        -0.5F,
+        0.5F,
+        -0.5F,
+        0.0F,
+        1.0F,
+        0.0F,
+        0.0F,
+        1.0F, // TL  green
+
+        // ---- Bottom face (-y) ----
+        -0.5F,
+        -0.5F,
+        -0.5F,
+        0.0F,
+        0.0F,
+        0.0F,
+        0.0F,
+        0.0F, // BL  black
+        0.5F,
+        -0.5F,
+        -0.5F,
+        1.0F,
+        0.0F,
+        0.0F,
+        1.0F,
+        0.0F, // BR  red
+        0.5F,
+        -0.5F,
+        0.5F,
+        1.0F,
+        0.0F,
+        1.0F,
+        1.0F,
+        1.0F, // TR  magenta
+        -0.5F,
+        -0.5F,
+        0.5F,
+        0.0F,
+        0.0F,
+        1.0F,
+        0.0F,
+        1.0F, // TL  blue
     };
 
-    // 6 faces × 2 triangles each. Wound counter-clockwise as seen from outside,
-    // so default GL face culling (front = CCW) keeps them all visible.
+    // 6 faces × 2 triangles each. Each face is 4 sequential vertices; for
+    // group N (0–5), the two triangles are (4N, 4N+1, 4N+2) and (4N, 4N+2, 4N+3).
     const std::vector<uint32_t> indices = {
-        // Front (+z)
-        4,
-        5,
-        6,
-        4,
-        6,
-        7,
-        // Back (-z)
-        1,
-        0,
-        3,
-        1,
-        3,
-        2,
-        // Right (+x)
-        5,
-        1,
-        2,
-        5,
-        2,
-        6,
-        // Left (-x)
-        0,
-        4,
-        7,
-        0,
-        7,
-        3,
-        // Top (+y)
-        7,
-        6,
-        2,
-        7,
-        2,
-        3,
-        // Bottom (-y)
-        0,
-        1,
-        5,
-        0,
-        5,
-        4,
+        0,  1,  2,  0,  2,  3,  // front
+        4,  5,  6,  4,  6,  7,  // back
+        8,  9,  10, 8,  10, 11, // right
+        12, 13, 14, 12, 14, 15, // left
+        16, 17, 18, 16, 18, 19, // top
+        20, 21, 22, 20, 22, 23, // bottom
     };
 
     engine::VertexLayout layout{
         .elements_ =
             {
+                // attribute 0: position (xyz), 3 floats, offset 0
                 {.index_ = 0, .size_ = 3, .type_ = GL_FLOAT, .offset_ = 0},
+                // attribute 1: color (rgb), 3 floats, offset 3*float
                 {.index_ = 1,
                  .size_ = 3,
                  .type_ = GL_FLOAT,
                  .offset_ = static_cast<uint32_t>(3 * sizeof(float))},
+                // attribute 2: texture coord (uv), 2 floats, offset 6*float
+                {.index_ = 2,
+                 .size_ = 2,
+                 .type_ = GL_FLOAT,
+                 .offset_ = static_cast<uint32_t>(6 * sizeof(float))},
             },
-        .stride_ = static_cast<uint32_t>(6 * sizeof(float)),
+        .stride_ = static_cast<uint32_t>(8 * sizeof(float)),
     };
 
     auto mesh = std::make_shared<engine::Mesh>(layout, vertices, indices);

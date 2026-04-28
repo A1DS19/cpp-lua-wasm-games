@@ -8,6 +8,7 @@
 
 namespace engine {
 
+class Texture;
 class ShaderProgram {
 
 public:
@@ -23,10 +24,12 @@ public:
     void set_uniform(const std::string& name, float value);
     void set_uniform(const std::string& name, float v0, float v1);
     void set_uniform(const std::string& name, const glm::mat4& mat);
+    void set_texture(const std::string& name, Texture* texture);
 
 private:
     std::unordered_map<std::string, GLint> uniform_location_cache_;
     GLuint shader_program_id_ = 0;
+    int current_texture_unit_ = 0;
 };
 
 } // namespace engine
