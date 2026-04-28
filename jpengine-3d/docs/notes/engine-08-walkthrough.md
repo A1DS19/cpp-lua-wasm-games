@@ -1,6 +1,6 @@
 # 08 — The Rectangle Walkthrough
 
-> Previous: [07 — Render queue](./engine-07-render-queue.md) · Next: [09 — Roadmap](./engine-09-roadmap.md)
+> Previous: [07 — Render queue](./engine-07-render-queue.md) · Next: [10 — Asset paths and file loading](./engine-10-asset-paths.md)
 
 This doc traces the current demo end to end: a colored rectangle that moves with WASD. Every layer of the engine is touched. If you understand this walkthrough, you understand how the engine hangs together.
 

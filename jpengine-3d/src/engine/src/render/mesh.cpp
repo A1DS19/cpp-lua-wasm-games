@@ -199,6 +199,13 @@ std::shared_ptr<Mesh> Mesh::load(const std::string& path) {
                     auto index = (vi * vertex_layout.stride_ + el.offset_) / sizeof(float);
                     float* out_data = &vertices[index];
                     read_floats(accesors[el.index_], vi, out_data, el.size_);
+
+                    // glTF UV origin is top-left; our textures are loaded with
+                    // stbi_set_flip_vertically_on_load(true) for the GL-native
+                    // bottom-left origin. Flip V to reconcile the two.
+                    if (el.index_ == VertexElement::uv_index_ && el.size_ >= 2) {
+                        out_data[1] = 1.0F - out_data[1];
+                    }
                 }
             }
 

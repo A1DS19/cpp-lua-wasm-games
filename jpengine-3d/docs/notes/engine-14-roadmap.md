@@ -1,10 +1,30 @@
-# 09 — Roadmap
+# 14 — Roadmap
 
-> Previous: [08 — Walkthrough](./engine-08-walkthrough.md) · Back to [index](./README.md)
+> Previous: [13 — Scene graph and components](./engine-13-scene-graph.md) · Back to [index](./README.md)
 
-Everything jpengine-3d doesn't do yet, in roughly the order you'd want to add it. Each item has a "why you want it," a rough scope, and pointers to related code/docs.
+Originally numbered 09. Many of the items below have since been implemented — those are marked ✅. The rest is still the planned trajectory.
 
-This is a learning engine. You don't have to build all of this — pick what teaches you the thing you want to learn next.
+| Status | Item |
+|---|---|
+| ✅ | Camera + matrices (`CameraComponent`, MVP) |
+| ✅ | Depth testing + backface culling |
+| ✅ | Textures (`Texture` class, stb_image) |
+| ✅ | A cube (textured, rotating, with UVs) |
+| ✅ | Mesh loading from glTF (cgltf) |
+| ✅ | Shaders from disk |
+| ✅ | A scene graph (`Scene` + `GameObject` + components) |
+| ✅ | JSON-driven materials (`Material::load("…")`) |
+| 🟨 | Resize handling + frame-rate independence (partial) |
+| 🟨 | More uniform types in `Material` (vec3/vec4/mat4) |
+| ⬜ | Lighting (directional + ambient + Phong) |
+| ⬜ | Asset manager (dedupe by path) |
+| ⬜ | Multi-primitive glTF meshes |
+| ⬜ | Hot-reload of shaders/textures |
+| ⬜ | Lua scripting (sol2 + Lua) |
+| ⬜ | Skeletal animation |
+| ⬜ | Shadow mapping |
+
+The list below is the original "everything we could do next." Use it as a menu — pick what teaches you the next thing.
 
 ---
 

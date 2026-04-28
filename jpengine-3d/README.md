@@ -158,7 +158,7 @@ auto src = utils::read_asset_text("shaders/basic.vert");    // std::string, thro
 
 ## Status
 
-Early. The current demo renders a textured spinning cube with a perspective camera. Roadmap (see [`docs/notes/engine-09-roadmap.md`](./docs/notes/engine-09-roadmap.md)):
+Early. The current demo renders a textured spinning cube with a perspective camera. Roadmap (see [`docs/notes/engine-14-roadmap.md`](./docs/notes/engine-14-roadmap.md)):
 
 - [ ] Lighting (directional, point)
 - [ ] glTF model loading (assimp or cgltf)
