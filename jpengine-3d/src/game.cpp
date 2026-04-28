@@ -3,22 +3,29 @@
 #include "engine/src/engine.hpp"
 #include "engine/src/scene/components/camera-component.hpp"
 #include "engine/src/scene/components/player-controller-component.hpp"
+#include "suzanne-obj.hpp"
 #include "test-obj.hpp"
 
 #include <glm/glm.hpp>
-#include <stb/stb_image.h>
 
 bool Game::init() {
     scene_ = new engine::Scene();
 
-    auto camera = scene_->create_object("camera");
+    // Camera
+    auto* camera = scene_->create_object("camera");
     camera->add_component(new engine::CameraComponent());
     camera->add_component(new engine::PlayerControllerComponent());
-    camera->set_position(glm::vec3(0.F, 0.F, 2.F));
-
+    camera->set_position(glm::vec3(0.0F, 0.0F, 4.0F));
     scene_->set_main_camera(camera);
 
-    scene_->create_object<TestObject>("test-object");
+    // Brick cube on the left
+    auto* cube = scene_->create_object<TestObject>("cube");
+    cube->set_position(glm::vec3(-1.5F, 0.0F, 0.0F));
+
+    // Suzanne (glTF) on the right
+    auto* suzanne = scene_->create_object<SuzanneObject>("suzanne");
+    suzanne->set_position(glm::vec3(1.5F, 0.0F, 0.0F));
+
     engine::Engine::get_instance().set_scene(scene_);
     return true;
 }

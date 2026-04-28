@@ -5,6 +5,8 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <memory>
+#include <string>
 
 namespace engine {
 
@@ -19,6 +21,8 @@ public:
 
     void bind();
     void draw();
+
+    static std::shared_ptr<Mesh> load(const std::string& path);
 
 private:
     VertexLayout vertex_layout_;

@@ -7,7 +7,7 @@
   "textures": [
 {
 "name": "base_color_texture",
-"path": "textures/brick.png"
+"path": "models/suzanne/Suzanne_BaseColor.png"
 }]
 }
 }

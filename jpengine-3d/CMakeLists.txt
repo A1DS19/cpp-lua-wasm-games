@@ -101,13 +101,13 @@ endif()
 # -w suppresses all warnings since we don't own this code.
 file(GLOB_RECURSE VENDOR_SOURCES ${CMAKE_SOURCE_DIR}/vendor/*/src/*.cpp)
 # Exclude libs we build explicitly
-list(FILTER VENDOR_SOURCES EXCLUDE REGEX "/vendor/(glfw-[0-9.]+|glew|glm|stb|json)/")
+list(FILTER VENDOR_SOURCES EXCLUDE REGEX "/vendor/(glfw-[0-9.]+|glew|glm|stb|json|cgltf)/")
 if(VENDOR_SOURCES)
     add_library(vendor STATIC ${VENDOR_SOURCES})
     file(GLOB VENDOR_DIRS LIST_DIRECTORIES true ${CMAKE_SOURCE_DIR}/vendor/*)
     foreach(VENDOR_DIR ${VENDOR_DIRS})
       if(IS_DIRECTORY ${VENDOR_DIR}
-         AND NOT ${VENDOR_DIR} MATCHES "/vendor/(glfw-[0-9.]+|glew|glm|stb|json)$")
+         AND NOT ${VENDOR_DIR} MATCHES "/vendor/(glfw-[0-9.]+|glew|glm|stb|json|cgltf)$")
         target_include_directories(vendor PUBLIC ${VENDOR_DIR}/include)
       endif()
     endforeach()
@@ -161,6 +161,16 @@ target_link_libraries(main PRIVATE stb)
 add_library(nlohmann_json INTERFACE)
 target_include_directories(nlohmann_json SYSTEM INTERFACE ${CMAKE_SOURCE_DIR}/vendor/json)
 target_link_libraries(main PRIVATE nlohmann_json)
+
+# ---------------------------------------------------------------------------
+# cgltf — single-header glTF 2.0 loader (vendor/cgltf/cgltf.h)
+# Users include as: #include <cgltf.h>
+# Exactly one .cpp in the project must #define CGLTF_IMPLEMENTATION before
+# the include — see src/utils/cgltf-impl.cpp.
+# ---------------------------------------------------------------------------
+add_library(cgltf INTERFACE)
+target_include_directories(cgltf SYSTEM INTERFACE ${CMAKE_SOURCE_DIR}/vendor/cgltf)
+target_link_libraries(main PRIVATE cgltf)
 
 # ---------------------------------------------------------------------------
 # OpenGL — system framework (macOS) / library (Linux/Windows)

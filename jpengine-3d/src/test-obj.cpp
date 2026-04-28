@@ -2,6 +2,7 @@
 
 #include "engine/src/graphics/shader-program.hpp"
 #include "engine/src/render/material.hpp"
+#include "engine/src/render/mesh.hpp"
 #include "engine/src/scene/components/mesh-component.hpp"
 #include "engine/src/scene/game-object.hpp"
 
@@ -10,8 +11,6 @@
 #include <stb/stb_image.h>
 
 TestObject::TestObject() {
-
-    auto material = engine::Material::load("materials/brick.mat");
 
     // 24 vertices (4 per face) so each face can have its own UVs.
     // Each vertex carries position (xyz), color (rgb) and a texture coord (uv).
@@ -256,6 +255,7 @@ TestObject::TestObject() {
 
     auto mesh = std::make_shared<engine::Mesh>(layout, vertices, indices);
 
+    auto material = engine::Material::load("materials/brick.mat");
     add_component(new engine::MeshComponent(material, mesh));
 }
 
