@@ -8,6 +8,7 @@ namespace engine {
 struct CameraData {
     glm::mat4 view_matrix_;
     glm::mat4 projection_matrix_;
+    glm::vec3 position_;
 };
 
 struct LightData {

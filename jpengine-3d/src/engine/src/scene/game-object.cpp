@@ -236,7 +236,9 @@ void parse_gltf_node(cgltf_node* node, GameObject* parent,
 
                 if (img != nullptr && img->uri != nullptr) {
                     auto rel = (folder / std::string(img->uri)).string();
-                    if (auto texture = Texture::load(rel)) {
+                    auto texture =
+                        Engine::get_instance().get_texture_manager().get_or_load_texture(rel);
+                    if (texture) {
                         material->set_param("base_color_texture", texture);
                     }
                 }

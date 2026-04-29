@@ -21,6 +21,7 @@ void RenderQueue::draw(class GraphicsApi& graphics_api, const CameraData* camera
         auto shader_pogram = command.material_->get_shader_program();
         shader_pogram->set_uniform("u_view", camera_data->view_matrix_);
         shader_pogram->set_uniform("u_projection", camera_data->projection_matrix_);
+        shader_pogram->set_uniform("u_camera_pos", camera_data->position_);
         if (!lights.empty()) {
             auto& light = lights[0];
             shader_pogram->set_uniform("u_light.color", light.color_);

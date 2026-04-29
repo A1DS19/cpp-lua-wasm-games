@@ -8,6 +8,8 @@
 #include "engine/src/scene/scene.hpp"
 #include "test-obj.hpp"
 
+#include <cstddef>
+#include <glm/ext/vector_float3.hpp>
 #include <glm/vec3.hpp>
 
 namespace {
@@ -15,6 +17,8 @@ constexpr glm::vec3 CAMERA_START_POSITION = glm::vec3(0.0F, 0.0F, 5.0F);
 constexpr glm::vec3 SUN_POSITION = glm::vec3(2.0F, 3.0F, 4.0F);
 constexpr glm::vec3 CUBE_POSITION = glm::vec3(-2.0F, 0.0F, 0.0F);
 constexpr glm::vec3 SUZANNE_POSITION = glm::vec3(2.0F, 0.0F, 0.0F);
+constexpr glm::vec3 GUN_OFFSET = glm::vec3(0.3F, -0.3F, -0.6F);
+constexpr glm::vec3 GUN_SCALE = glm::vec3(-0.3F, 0.3F, 0.3F);
 } // namespace
 
 bool Game::init() {
@@ -48,6 +52,13 @@ bool Game::init() {
     auto* suzanne = engine::GameObject::load_gltf("models/suzanne/Suzanne.gltf");
     if (suzanne != nullptr) {
         suzanne->set_position(SUZANNE_POSITION);
+    }
+
+    auto* gun = engine::GameObject::load_gltf("models/sten_gun/scene.gltf");
+    if (gun != nullptr) {
+        gun->set_parent(camera);
+        gun->set_position(GUN_OFFSET);
+        gun->set_scale(GUN_SCALE);
     }
 
     return true;

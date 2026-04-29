@@ -2,6 +2,7 @@
 
 #include "utils/asset-path.hpp"
 
+#include <GL/glew.h>
 #include <filesystem>
 #include <memory>
 #include <stb/stb_image.h>
@@ -42,8 +43,7 @@ std::shared_ptr<Texture> Texture::load(const std::string& path) {
     int width = 0;
     int height = 0;
     int numchannels = 0;
-    unsigned char* data = stbi_load(resolved.string().c_str(),
-                                    &width, &height, &numchannels,
+    unsigned char* data = stbi_load(resolved.string().c_str(), &width, &height, &numchannels,
                                     4); // force RGBA
     if (data == nullptr) {
         return nullptr;

@@ -23,6 +23,7 @@ public:
     virtual void update(float deltatime);
     [[nodiscard]] const std::string& get_name() const noexcept { return name_; }
     void set_name(std::string name) { name_ = std::move(name); }
+    void set_parent(GameObject* parent) { parent_ = parent; }
     [[nodiscard]] GameObject* get_parent() { return parent_; }
     [[nodiscard]] bool get_is_alive() const noexcept { return is_alive_; }
     void mark_for_destroy();

@@ -85,7 +85,7 @@ bool Engine::init() {
         return false;
     }
 
-    glClearColor(0.0F, 0.0F, 0.0F, 1.0F);
+    glClearColor(1.0F, 1.0F, 1.0F, 1.0F);
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
@@ -125,6 +125,7 @@ void Engine::run() {
                     camera_data.view_matrix_ = camera_component->get_view_matrix();
                     camera_data.projection_matrix_ =
                         camera_component->get_projection_matrix(aspect);
+                    camera_data.position_ = camera_obj->get_world_position();
                 }
             }
 

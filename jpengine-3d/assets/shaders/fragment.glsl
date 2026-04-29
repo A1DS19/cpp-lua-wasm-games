@@ -6,6 +6,7 @@ struct Light {
 };
 
 uniform Light u_light;
+uniform vec3 u_camera_pos;
 
 in vec2 v_uv;
 in vec3 v_normal;
@@ -22,16 +23,28 @@ void main() {
     vec3 raw_normal = v_normal;
     float n_len = length(raw_normal);
 
-    vec3 diffuse_comp;
+    vec3 diffuse_comp = vec3(0.0);
+    vec3 specular_comp = vec3(0.0);
+
     if (n_len < 0.001) {
         diffuse_comp = u_light.color;
     } else {
         vec3 normal = raw_normal / n_len;
+        // diffuse
         vec3 light_direction = normalize(u_light.position - v_frag_pos);
         float diffuse = max(dot(normal, light_direction), 0.0);
         diffuse_comp = diffuse * u_light.color;
+
+        // specular
+        vec3 view_dir = normalize(u_camera_pos - v_frag_pos);
+        vec3 reflect_dir = reflect(-light_direction, normal);
+        float spec = pow(max(dot(view_dir, reflect_dir), 0.0), 32.0);
+        float specular_strength = 0.5;
+        specular_comp = specular_strength * spec * u_light.color;
     }
 
+    vec3 result = diffuse_comp + specular_comp;
+
     vec4 texture_color = texture(base_color_texture, v_uv);
-    frag_color = texture_color * vec4(diffuse_comp, 1.0);
+    frag_color = texture_color * vec4(result, 1.0);
 }
