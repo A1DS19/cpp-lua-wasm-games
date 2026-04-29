@@ -51,6 +51,7 @@ public:
         return nullptr;
     }
     [[nodiscard]] glm::vec3 get_world_position() const;
+    static GameObject* load_gltf(const std::string& path);
 
 protected:
     GameObject() = default;

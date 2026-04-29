@@ -12,215 +12,47 @@
 
 TestObject::TestObject() {
 
-    // 24 vertices (4 per face) so each face can have its own UVs.
-    // Each vertex carries position (xyz), color (rgb) and a texture coord (uv).
+    // 24 vertices (4 per face) so each face can have its own UVs and normal.
+    // Each vertex: position (xyz), color (rgb), uv (uv), normal (nx ny nz) = 11 floats.
     // Per-face vertices are listed BL, BR, TR, TL — CCW seen from outside the cube,
     // so default GL face culling (front = CCW) keeps them all visible.
     const std::vector<float> vertices = {
-        //   x      y      z      r     g     b      u     v
-        // ---- Front face (+z) ----
-        -0.5F,
-        -0.5F,
-        0.5F,
-        0.0F,
-        0.0F,
-        1.0F,
-        0.0F,
-        0.0F, // BL  blue
-        0.5F,
-        -0.5F,
-        0.5F,
-        1.0F,
-        0.0F,
-        1.0F,
-        1.0F,
-        0.0F, // BR  magenta
-        0.5F,
-        0.5F,
-        0.5F,
-        1.0F,
-        1.0F,
-        1.0F,
-        1.0F,
-        1.0F, // TR  white
-        -0.5F,
-        0.5F,
-        0.5F,
-        0.0F,
-        1.0F,
-        1.0F,
-        0.0F,
-        1.0F, // TL  cyan
+        //   x      y      z     r     g     b     u     v     nx    ny    nz
+        // ---- Front face (+z), normal (0, 0, 1) ----
+        -0.5F, -0.5F, 0.5F,  0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 0.0F, 0.0F, 1.0F,
+        0.5F,  -0.5F, 0.5F,  1.0F, 0.0F, 1.0F, 1.0F, 0.0F, 0.0F, 0.0F, 1.0F,
+        0.5F,  0.5F,  0.5F,  1.0F, 1.0F, 1.0F, 1.0F, 1.0F, 0.0F, 0.0F, 1.0F,
+        -0.5F, 0.5F,  0.5F,  0.0F, 1.0F, 1.0F, 0.0F, 1.0F, 0.0F, 0.0F, 1.0F,
 
-        // ---- Back face (-z) ----
-        0.5F,
-        -0.5F,
-        -0.5F,
-        1.0F,
-        0.0F,
-        0.0F,
-        0.0F,
-        0.0F, // BL  red
-        -0.5F,
-        -0.5F,
-        -0.5F,
-        0.0F,
-        0.0F,
-        0.0F,
-        1.0F,
-        0.0F, // BR  black
-        -0.5F,
-        0.5F,
-        -0.5F,
-        0.0F,
-        1.0F,
-        0.0F,
-        1.0F,
-        1.0F, // TR  green
-        0.5F,
-        0.5F,
-        -0.5F,
-        1.0F,
-        1.0F,
-        0.0F,
-        0.0F,
-        1.0F, // TL  yellow
+        // ---- Back face (-z), normal (0, 0, -1) ----
+        0.5F,  -0.5F, -0.5F, 1.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, -1.0F,
+        -0.5F, -0.5F, -0.5F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, 0.0F, -1.0F,
+        -0.5F, 0.5F,  -0.5F, 0.0F, 1.0F, 0.0F, 1.0F, 1.0F, 0.0F, 0.0F, -1.0F,
+        0.5F,  0.5F,  -0.5F, 1.0F, 1.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, -1.0F,
 
-        // ---- Right face (+x) ----
-        0.5F,
-        -0.5F,
-        0.5F,
-        1.0F,
-        0.0F,
-        1.0F,
-        0.0F,
-        0.0F, // BL  magenta
-        0.5F,
-        -0.5F,
-        -0.5F,
-        1.0F,
-        0.0F,
-        0.0F,
-        1.0F,
-        0.0F, // BR  red
-        0.5F,
-        0.5F,
-        -0.5F,
-        1.0F,
-        1.0F,
-        0.0F,
-        1.0F,
-        1.0F, // TR  yellow
-        0.5F,
-        0.5F,
-        0.5F,
-        1.0F,
-        1.0F,
-        1.0F,
-        0.0F,
-        1.0F, // TL  white
+        // ---- Right face (+x), normal (1, 0, 0) ----
+        0.5F,  -0.5F, 0.5F,  1.0F, 0.0F, 1.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F,
+        0.5F,  -0.5F, -0.5F, 1.0F, 0.0F, 0.0F, 1.0F, 0.0F, 1.0F, 0.0F, 0.0F,
+        0.5F,  0.5F,  -0.5F, 1.0F, 1.0F, 0.0F, 1.0F, 1.0F, 1.0F, 0.0F, 0.0F,
+        0.5F,  0.5F,  0.5F,  1.0F, 1.0F, 1.0F, 0.0F, 1.0F, 1.0F, 0.0F, 0.0F,
 
-        // ---- Left face (-x) ----
-        -0.5F,
-        -0.5F,
-        -0.5F,
-        0.0F,
-        0.0F,
-        0.0F,
-        0.0F,
-        0.0F, // BL  black
-        -0.5F,
-        -0.5F,
-        0.5F,
-        0.0F,
-        0.0F,
-        1.0F,
-        1.0F,
-        0.0F, // BR  blue
-        -0.5F,
-        0.5F,
-        0.5F,
-        0.0F,
-        1.0F,
-        1.0F,
-        1.0F,
-        1.0F, // TR  cyan
-        -0.5F,
-        0.5F,
-        -0.5F,
-        0.0F,
-        1.0F,
-        0.0F,
-        0.0F,
-        1.0F, // TL  green
+        // ---- Left face (-x), normal (-1, 0, 0) ----
+        -0.5F, -0.5F, -0.5F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, -1.0F, 0.0F, 0.0F,
+        -0.5F, -0.5F, 0.5F,  0.0F, 0.0F, 1.0F, 1.0F, 0.0F, -1.0F, 0.0F, 0.0F,
+        -0.5F, 0.5F,  0.5F,  0.0F, 1.0F, 1.0F, 1.0F, 1.0F, -1.0F, 0.0F, 0.0F,
+        -0.5F, 0.5F,  -0.5F, 0.0F, 1.0F, 0.0F, 0.0F, 1.0F, -1.0F, 0.0F, 0.0F,
 
-        // ---- Top face (+y) ----
-        -0.5F,
-        0.5F,
-        0.5F,
-        0.0F,
-        1.0F,
-        1.0F,
-        0.0F,
-        0.0F, // BL  cyan
-        0.5F,
-        0.5F,
-        0.5F,
-        1.0F,
-        1.0F,
-        1.0F,
-        1.0F,
-        0.0F, // BR  white
-        0.5F,
-        0.5F,
-        -0.5F,
-        1.0F,
-        1.0F,
-        0.0F,
-        1.0F,
-        1.0F, // TR  yellow
-        -0.5F,
-        0.5F,
-        -0.5F,
-        0.0F,
-        1.0F,
-        0.0F,
-        0.0F,
-        1.0F, // TL  green
+        // ---- Top face (+y), normal (0, 1, 0) ----
+        -0.5F, 0.5F,  0.5F,  0.0F, 1.0F, 1.0F, 0.0F, 0.0F, 0.0F, 1.0F, 0.0F,
+        0.5F,  0.5F,  0.5F,  1.0F, 1.0F, 1.0F, 1.0F, 0.0F, 0.0F, 1.0F, 0.0F,
+        0.5F,  0.5F,  -0.5F, 1.0F, 1.0F, 0.0F, 1.0F, 1.0F, 0.0F, 1.0F, 0.0F,
+        -0.5F, 0.5F,  -0.5F, 0.0F, 1.0F, 0.0F, 0.0F, 1.0F, 0.0F, 1.0F, 0.0F,
 
-        // ---- Bottom face (-y) ----
-        -0.5F,
-        -0.5F,
-        -0.5F,
-        0.0F,
-        0.0F,
-        0.0F,
-        0.0F,
-        0.0F, // BL  black
-        0.5F,
-        -0.5F,
-        -0.5F,
-        1.0F,
-        0.0F,
-        0.0F,
-        1.0F,
-        0.0F, // BR  red
-        0.5F,
-        -0.5F,
-        0.5F,
-        1.0F,
-        0.0F,
-        1.0F,
-        1.0F,
-        1.0F, // TR  magenta
-        -0.5F,
-        -0.5F,
-        0.5F,
-        0.0F,
-        0.0F,
-        1.0F,
-        0.0F,
-        1.0F, // TL  blue
+        // ---- Bottom face (-y), normal (0, -1, 0) ----
+        -0.5F, -0.5F, -0.5F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, 0.0F, -1.0F, 0.0F,
+        0.5F,  -0.5F, -0.5F, 1.0F, 0.0F, 0.0F, 1.0F, 0.0F, 0.0F, -1.0F, 0.0F,
+        0.5F,  -0.5F, 0.5F,  1.0F, 0.0F, 1.0F, 1.0F, 1.0F, 0.0F, -1.0F, 0.0F,
+        -0.5F, -0.5F, 0.5F,  0.0F, 0.0F, 1.0F, 0.0F, 1.0F, 0.0F, -1.0F, 0.0F,
     };
 
     // 6 faces × 2 triangles each. Each face is 4 sequential vertices; for
@@ -249,8 +81,13 @@ TestObject::TestObject() {
                  .size_ = 2,
                  .type_ = GL_FLOAT,
                  .offset_ = static_cast<uint32_t>(6 * sizeof(float))},
+                // attribute 3: normal (nx ny nz), 3 floats, offset 8*float
+                {.index_ = 3,
+                 .size_ = 3,
+                 .type_ = GL_FLOAT,
+                 .offset_ = static_cast<uint32_t>(8 * sizeof(float))},
             },
-        .stride_ = static_cast<uint32_t>(8 * sizeof(float)),
+        .stride_ = static_cast<uint32_t>(11 * sizeof(float)),
     };
 
     auto mesh = std::make_shared<engine::Mesh>(layout, vertices, indices);

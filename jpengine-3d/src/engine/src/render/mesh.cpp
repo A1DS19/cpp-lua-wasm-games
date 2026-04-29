@@ -6,11 +6,10 @@
 #include "utils/file-utils.hpp"
 
 #include <GL/glew.h>
+#include <cgltf.h>
 #include <cstdint>
 #include <memory>
 #include <vector>
-
-#include <cgltf.h>
 
 namespace engine {
 
@@ -106,7 +105,7 @@ std::shared_ptr<Mesh> Mesh::load(const std::string& path) {
         return nullptr;
     }
 
-    // Third arg is the *path of the .gltf file*. cgltf takes dirname() of it
+    // Third arg is the *path of the .gltf file*. cgltf takes dirname() of i
     // to resolve the relative URIs inside the JSON (e.g. "Suzanne.bin").
     res = cgltf_load_buffers(&options, data, utils::asset_path(path).string().c_str());
 
