@@ -4,6 +4,7 @@
 
 #include <cstddef>
 #include <glm/ext/matrix_float4x4.hpp>
+#include <glm/ext/vector_float3.hpp>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <memory>
@@ -49,6 +50,7 @@ public:
 
         return nullptr;
     }
+    [[nodiscard]] glm::vec3 get_world_position() const;
 
 protected:
     GameObject() = default;

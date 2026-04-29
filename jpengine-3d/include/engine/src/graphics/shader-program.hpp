@@ -3,6 +3,7 @@
 #include "glm/ext/matrix_float4x4.hpp"
 
 #include <glew/include/GL/glew.h>
+#include <glm/ext/vector_float3.hpp>
 #include <string>
 #include <unordered_map>
 
@@ -24,6 +25,8 @@ public:
     void set_uniform(const std::string& name, float value);
     void set_uniform(const std::string& name, float v0, float v1);
     void set_uniform(const std::string& name, const glm::mat4& mat);
+    void set_uniform(const std::string& name, glm::vec3 value);
+
     void set_texture(const std::string& name, Texture* texture);
 
 private:

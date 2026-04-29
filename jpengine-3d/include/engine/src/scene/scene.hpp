@@ -1,5 +1,6 @@
 #pragma once
 
+#include "engine/common.hpp"
 #include "engine/src/scene/game-object.hpp"
 
 #include <concepts>
@@ -31,8 +32,10 @@ public:
     bool set_parent(GameObject* object, GameObject* parent);
     void set_main_camera(GameObject* camera) { main_camera_ = camera; }
     [[nodiscard]] GameObject* get_main_camera() const { return main_camera_; }
+    std::vector<LightData> collect_light();
 
 private:
+    void collect_light_recursive(GameObject* obj, std::vector<LightData>& out);
     std::vector<std::unique_ptr<GameObject>> objects_;
     GameObject* main_camera_ = nullptr;
 };

@@ -1,12 +1,14 @@
 #include "engine/src/scene/scene.hpp"
 
+#include "engine/common.hpp"
+#include "engine/src/scene/components/light-component.hpp"
 #include "engine/src/scene/game-object.hpp"
 
 #include <algorithm>
-#include <concepts>
 #include <memory>
 #include <string>
 #include <utility>
+#include <vector>
 
 namespace engine {
 void Scene::update(float deltatime) {
@@ -104,6 +106,28 @@ bool Scene::set_parent(GameObject* object, GameObject* parent) {
     }
     object->parent_ = parent;
     return true;
+}
+
+std::vector<LightData> Scene::collect_light() {
+    std::vector<LightData> lights;
+    for (auto& obj : objects_) {
+        collect_light_recursive(obj.get(), lights);
+    }
+
+    return lights;
+}
+
+void Scene::collect_light_recursive(GameObject* obj, std::vector<LightData>& out) {
+    if (auto light = obj->get_component<LightComponent>()) {
+        LightData data;
+        data.color_ = light->get_color();
+        data.position_ = obj->get_world_position();
+        out.push_back(data);
+    }
+
+    for (auto& child : obj->children_) {
+        collect_light_recursive(child.get(), out);
+    }
 }
 
 } // namespace engine

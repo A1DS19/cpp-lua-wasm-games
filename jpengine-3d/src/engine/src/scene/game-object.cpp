@@ -3,6 +3,8 @@
 #include "glm/ext/matrix_float4x4.hpp"
 #include "glm/ext/matrix_transform.hpp"
 
+#include <glm/ext/vector_float3.hpp>
+#include <glm/ext/vector_float4.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
 
@@ -48,6 +50,11 @@ void GameObject::mark_for_destroy() {
     }
 
     return get_local_transform();
+}
+
+[[nodiscard]] glm::vec3 GameObject::get_world_position() const {
+    glm::vec4 hom = get_world_transform() * glm::vec4(0.0F, 0.0F, 0.0F, 1.0F);
+    return glm::vec3(hom) / hom.w;
 }
 
 } // namespace engine

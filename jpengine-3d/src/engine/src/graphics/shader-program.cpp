@@ -39,6 +39,11 @@ void ShaderProgram::set_uniform(const std::string& name, const glm::mat4& mat) {
     glUniformMatrix4fv(location, 1, GL_FALSE, glm::value_ptr(mat));
 }
 
+void ShaderProgram::set_uniform(const std::string& name, glm::vec3 value) {
+    auto location = get_uniform_location(name);
+    glUniform3fv(location, 1, glm::value_ptr(value));
+}
+
 void ShaderProgram::set_texture(const std::string& name, Texture* texture) {
     auto location = get_uniform_location(name);
     glActiveTexture(GL_TEXTURE0 + current_texture_unit_);

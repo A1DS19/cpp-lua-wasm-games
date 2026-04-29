@@ -8,6 +8,7 @@
 #include <GLFW/glfw3.h>
 #include <glm/detail/qualifier.hpp>
 #include <iostream>
+#include <vector>
 
 namespace engine {
 
@@ -115,6 +116,7 @@ void Engine::run() {
         int height = 0;
         glfwGetWindowSize(pwindow_, &width, &height);
         float aspect = static_cast<float>(width) / static_cast<float>(height);
+        std::vector<LightData> lights;
 
         if (current_scene_) {
             if (auto camera_obj = current_scene_->get_main_camera()) {
@@ -125,8 +127,10 @@ void Engine::run() {
                         camera_component->get_projection_matrix(aspect);
                 }
             }
+
+            lights = current_scene_->collect_light();
         }
-        render_queue_.draw(graphics_api_, &camera_data);
+        render_queue_.draw(graphics_api_, &camera_data, lights);
 
         glfwSwapBuffers(pwindow_);
         input_manager_.set_mouse_position_old(input_manager_.get_mouse_position_current());
