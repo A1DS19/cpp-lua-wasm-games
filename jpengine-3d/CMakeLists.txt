@@ -101,13 +101,13 @@ endif()
 # -w suppresses all warnings since we don't own this code.
 file(GLOB_RECURSE VENDOR_SOURCES ${CMAKE_SOURCE_DIR}/vendor/*/src/*.cpp)
 # Exclude libs we build explicitly
-list(FILTER VENDOR_SOURCES EXCLUDE REGEX "/vendor/(glfw-[0-9.]+|glew|glm|stb|json|cgltf)/")
+list(FILTER VENDOR_SOURCES EXCLUDE REGEX "/vendor/(glfw-[0-9.]+|glew|glm|stb|json|cgltf|bullet3-[0-9.]+)/")
 if(VENDOR_SOURCES)
     add_library(vendor STATIC ${VENDOR_SOURCES})
     file(GLOB VENDOR_DIRS LIST_DIRECTORIES true ${CMAKE_SOURCE_DIR}/vendor/*)
     foreach(VENDOR_DIR ${VENDOR_DIRS})
       if(IS_DIRECTORY ${VENDOR_DIR}
-         AND NOT ${VENDOR_DIR} MATCHES "/vendor/(glfw-[0-9.]+|glew|glm|stb|json|cgltf)$")
+         AND NOT ${VENDOR_DIR} MATCHES "/vendor/(glfw-[0-9.]+|glew|glm|stb|json|cgltf|bullet3-[0-9.]+)$")
         target_include_directories(vendor PUBLIC ${VENDOR_DIR}/include)
       endif()
     endforeach()
@@ -171,6 +171,38 @@ target_link_libraries(main PRIVATE nlohmann_json)
 add_library(cgltf INTERFACE)
 target_include_directories(cgltf SYSTEM INTERFACE ${CMAKE_SOURCE_DIR}/vendor/cgltf)
 target_link_libraries(main PRIVATE cgltf)
+
+# ---------------------------------------------------------------------------
+# Bullet3 — physics library (vendor/bullet3-3.25)
+# Has its own CMakeLists.txt; we build the three core libs (BulletDynamics,
+# BulletCollision, LinearMath) and skip everything else (demos, extras,
+# Python bindings, OpenGL examples).
+# Headers reference each other as `Bullet3Common/...` etc., so the include
+# path needs to be vendor/bullet3-3.25/src/.
+# ---------------------------------------------------------------------------
+set(BUILD_BULLET2_DEMOS    OFF CACHE BOOL "" FORCE)
+set(BUILD_CPU_DEMOS        OFF CACHE BOOL "" FORCE)
+set(BUILD_OPENGL3_DEMOS    OFF CACHE BOOL "" FORCE)
+set(BUILD_EXTRAS           OFF CACHE BOOL "" FORCE)
+set(BUILD_UNIT_TESTS       OFF CACHE BOOL "" FORCE)
+set(BUILD_BULLET3          ON  CACHE BOOL "" FORCE)
+set(BUILD_PYBULLET         OFF CACHE BOOL "" FORCE)
+set(USE_GRAPHICAL_BENCHMARK OFF CACHE BOOL "" FORCE)
+set(INSTALL_LIBS           OFF CACHE BOOL "" FORCE)
+set(INSTALL_EXTRA_LIBS     OFF CACHE BOOL "" FORCE)
+set(USE_DOUBLE_PRECISION   OFF CACHE BOOL "" FORCE)
+# Bullet's top-level CMakeLists declares a too-old cmake_minimum_required for
+# modern CMake. This sets the policy floor so the subproject configures.
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "" FORCE)
+add_subdirectory(${CMAKE_SOURCE_DIR}/vendor/bullet3-3.25 EXCLUDE_FROM_ALL)
+target_include_directories(main SYSTEM PRIVATE ${CMAKE_SOURCE_DIR}/vendor/bullet3-3.25/src)
+target_link_libraries(main PRIVATE BulletDynamics BulletCollision LinearMath)
+# Silence Bullet's own warnings — we don't own this code.
+foreach(BULLET_TARGET BulletDynamics BulletCollision LinearMath)
+    if(TARGET ${BULLET_TARGET})
+        target_compile_options(${BULLET_TARGET} PRIVATE -w)
+    endif()
+endforeach()
 
 # ---------------------------------------------------------------------------
 # OpenGL — system framework (macOS) / library (Linux/Windows)
