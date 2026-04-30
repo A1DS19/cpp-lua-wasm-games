@@ -30,6 +30,7 @@ void Scene::clear() {
 GameObject* Scene::create_object(std::string name, GameObject* parent) {
     auto* object = new GameObject();
     object->set_name(std::move(name));
+    object->scene_ = this;
     set_parent(object, parent);
     return object;
 }

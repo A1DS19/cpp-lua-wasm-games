@@ -8,6 +8,7 @@
 #include "engine/src/graphics/vertex-layout.hpp"
 #include "engine/src/render/material.hpp"
 #include "engine/src/render/mesh.hpp"
+#include "engine/src/scene/components/animation-component.hpp"
 #include "engine/src/scene/components/mesh-component.hpp"
 #include "engine/src/scene/scene.hpp"
 #include "utils/asset-path.hpp"
@@ -28,11 +29,17 @@
 #include <glm/gtx/matrix_decompose.hpp>
 #include <memory>
 #include <string>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
 namespace engine {
 
 void GameObject::update(float deltatime) {
+    if (!active_) {
+        return;
+    }
+
     for (auto& component : components_) {
         component->update(deltatime);
     }
@@ -49,6 +56,13 @@ void GameObject::update(float deltatime) {
 
 void GameObject::mark_for_destroy() {
     is_alive_ = false;
+}
+
+bool GameObject::set_parent(GameObject* parent) {
+    if (scene_ == nullptr) {
+        return false;
+    }
+    return scene_->set_parent(this, parent);
 }
 
 [[nodiscard]] glm::mat4 GameObject::get_local_transform() const {
@@ -71,6 +85,18 @@ void GameObject::mark_for_destroy() {
     return glm::vec3(hom) / hom.w;
 }
 
+[[nodiscard]] GameObject* GameObject::find_child_by_name(const std::string& name) {
+    for (auto& child : children_) {
+        if (child->get_name() == name) {
+            return child.get();
+        }
+        if (auto* found = child->find_child_by_name(name); found != nullptr) {
+            return found;
+        }
+    }
+    return nullptr;
+}
+
 namespace {
 
 // Cached default shader program for glTF-imported meshes. Compiled once on
@@ -84,8 +110,7 @@ std::shared_ptr<ShaderProgram> get_default_shader_program() {
     return program;
 }
 
-void parse_gltf_node(cgltf_node* node, GameObject* parent,
-                     const std::filesystem::path& folder) {
+void parse_gltf_node(cgltf_node* node, GameObject* parent, const std::filesystem::path& folder) {
     const std::string name = (node->name != nullptr) ? node->name : "node";
     auto* object = Engine::get_instance().get_current_scene()->create_object(name, parent);
 
@@ -104,15 +129,12 @@ void parse_gltf_node(cgltf_node* node, GameObject* parent,
         object->set_scale(scale);
     } else {
         if (node->has_translation != 0) {
-            object->set_position(glm::vec3(node->translation[0],
-                                           node->translation[1],
-                                           node->translation[2]));
+            object->set_position(
+                glm::vec3(node->translation[0], node->translation[1], node->translation[2]));
         }
         if (node->has_rotation != 0) {
             // glTF stores quaternions as (x, y, z, w); glm::quat is (w, x, y, z).
-            object->set_rotation(glm::quat(node->rotation[3],
-                                           node->rotation[0],
-                                           node->rotation[1],
+            object->set_rotation(glm::quat(node->rotation[3], node->rotation[0], node->rotation[1],
                                            node->rotation[2]));
         }
         if (node->has_scale != 0) {
@@ -159,13 +181,15 @@ void parse_gltf_node(cgltf_node* node, GameObject* parent,
                         element.size_ = 3;
                         break;
                     case cgltf_attribute_type_color:
-                        if (attr.index != 0) continue;
+                        if (attr.index != 0)
+                            continue;
                         accessors[VertexElement::color_index_] = acc;
                         element.index_ = VertexElement::color_index_;
                         element.size_ = 3;
                         break;
                     case cgltf_attribute_type_texcoord:
-                        if (attr.index != 0) continue;
+                        if (attr.index != 0)
+                            continue;
                         accessors[VertexElement::uv_index_] = acc;
                         element.index_ = VertexElement::uv_index_;
                         element.size_ = 2;
@@ -227,11 +251,14 @@ void parse_gltf_node(cgltf_node* node, GameObject* parent,
             if (primitive.material != nullptr) {
                 const cgltf_image* img = nullptr;
                 if (primitive.material->has_pbr_metallic_roughness != 0) {
-                    auto* tex = primitive.material->pbr_metallic_roughness.base_color_texture.texture;
-                    if (tex != nullptr) img = tex->image;
+                    auto* tex =
+                        primitive.material->pbr_metallic_roughness.base_color_texture.texture;
+                    if (tex != nullptr)
+                        img = tex->image;
                 } else if (primitive.material->has_pbr_specular_glossiness != 0) {
                     auto* tex = primitive.material->pbr_specular_glossiness.diffuse_texture.texture;
-                    if (tex != nullptr) img = tex->image;
+                    if (tex != nullptr)
+                        img = tex->image;
                 }
 
                 if (img != nullptr && img->uri != nullptr) {
@@ -290,6 +317,130 @@ GameObject* GameObject::load_gltf(const std::string& path) {
         const auto& gltf_scene = data->scenes[0];
         for (cgltf_size i = 0; i < gltf_scene.nodes_count; ++i) {
             parse_gltf_node(gltf_scene.nodes[i], root, relative_folder);
+        }
+    }
+
+    // ----- Animations ---------------------------------------------------
+    // Each glTF animation has channels; each channel binds a (sampler, node,
+    // path) where path is one of translation / rotation / scale. Multiple
+    // channels for the same node merge into a single TransformTrack.
+    auto read_scalar = [](cgltf_accessor* acc, cgltf_size index) {
+        float v = 0.0F;
+        cgltf_accessor_read_float(acc, index, &v, 1);
+        return v;
+    };
+    auto read_vec3 = [](cgltf_accessor* acc, cgltf_size index) {
+        glm::vec3 v(0.0F);
+        cgltf_accessor_read_float(acc, index, glm::value_ptr(v), 3);
+        return v;
+    };
+    auto read_quat = [](cgltf_accessor* acc, cgltf_size index) {
+        float v[4] = {0.0F, 0.0F, 0.0F, 1.0F};
+        cgltf_accessor_read_float(acc, index, v, 4);
+        // glTF stores quats as (x, y, z, w); glm::quat is (w, x, y, z).
+        return glm::quat(v[3], v[0], v[1], v[2]);
+    };
+    auto read_times = [&](cgltf_accessor* acc, std::vector<float>& out) {
+        out.resize(acc->count);
+        for (cgltf_size i = 0; i < acc->count; ++i) {
+            out[i] = read_scalar(acc, i);
+        }
+    };
+    auto read_output_vec3 = [&](cgltf_accessor* acc, std::vector<glm::vec3>& out) {
+        out.resize(acc->count);
+        for (cgltf_size i = 0; i < acc->count; ++i) {
+            out[i] = read_vec3(acc, i);
+        }
+    };
+    auto read_output_quat = [&](cgltf_accessor* acc, std::vector<glm::quat>& out) {
+        out.resize(acc->count);
+        for (cgltf_size i = 0; i < acc->count; ++i) {
+            out[i] = read_quat(acc, i);
+        }
+    };
+
+    std::vector<std::shared_ptr<AnimationClip>> clips;
+    for (cgltf_size ai = 0; ai < data->animations_count; ++ai) {
+        auto& anim = data->animations[ai];
+        auto clip = std::make_shared<AnimationClip>();
+        clip->name_ = (anim.name != nullptr) ? anim.name : "noname";
+        clip->duration_ = 0.0F;
+
+        // Map node → index of its TransformTrack in clip->tracks_.
+        std::unordered_map<cgltf_node*, size_t> track_index_of;
+        auto get_or_create_track = [&](cgltf_node* node) -> TransformTrack& {
+            if (auto it = track_index_of.find(node); it != track_index_of.end()) {
+                return clip->tracks_[it->second];
+            }
+            TransformTrack track;
+            track.target_name_ = (node->name != nullptr) ? node->name : "";
+            clip->tracks_.push_back(std::move(track));
+            const size_t idx = clip->tracks_.size() - 1;
+            track_index_of[node] = idx;
+            return clip->tracks_[idx];
+        };
+
+        for (cgltf_size ci = 0; ci < anim.channels_count; ++ci) {
+            auto& channel = anim.channels[ci];
+            auto* sampler = channel.sampler;
+            if (channel.target_node == nullptr || sampler == nullptr || sampler->input == nullptr ||
+                sampler->output == nullptr) {
+                continue;
+            }
+
+            std::vector<float> times;
+            read_times(sampler->input, times);
+
+            auto& track = get_or_create_track(channel.target_node);
+
+            switch (channel.target_path) {
+                case cgltf_animation_path_type_translation: {
+                    std::vector<glm::vec3> values;
+                    read_output_vec3(sampler->output, values);
+                    track.positions_.resize(times.size());
+                    for (size_t i = 0; i < times.size(); ++i) {
+                        track.positions_[i].time_ = times[i];
+                        track.positions_[i].value_ = values[i];
+                    }
+                    break;
+                }
+                case cgltf_animation_path_type_rotation: {
+                    std::vector<glm::quat> values;
+                    read_output_quat(sampler->output, values);
+                    track.rotations_.resize(times.size());
+                    for (size_t i = 0; i < times.size(); ++i) {
+                        track.rotations_[i].time_ = times[i];
+                        track.rotations_[i].value_ = values[i];
+                    }
+                    break;
+                }
+                case cgltf_animation_path_type_scale: {
+                    std::vector<glm::vec3> values;
+                    read_output_vec3(sampler->output, values);
+                    track.scales_.resize(times.size());
+                    for (size_t i = 0; i < times.size(); ++i) {
+                        track.scales_[i].time_ = times[i];
+                        track.scales_[i].value_ = values[i];
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
+
+            if (!times.empty()) {
+                clip->duration_ = std::max(clip->duration_, times.back());
+            }
+        }
+
+        clips.push_back(std::move(clip));
+    }
+
+    if (!clips.empty()) {
+        auto* anim_comp = new AnimationComponent();
+        root->add_component(anim_comp);
+        for (auto& clip : clips) {
+            anim_comp->register_clip(clip->name_, clip);
         }
     }
 

@@ -1,6 +1,7 @@
 #include "game.hpp"
 
 #include "engine/src/engine.hpp"
+#include "engine/src/scene/components/animation-component.hpp"
 #include "engine/src/scene/components/camera-component.hpp"
 #include "engine/src/scene/components/light-component.hpp"
 #include "engine/src/scene/components/player-controller-component.hpp"
@@ -59,6 +60,17 @@ bool Game::init() {
         gun->set_parent(camera);
         gun->set_position(GUN_OFFSET);
         gun->set_scale(GUN_SCALE);
+        if (auto animation = gun->get_component<engine::AnimationComponent>()) {
+            if (auto bullet = gun->find_child_by_name("bullet_33")) {
+                bullet->set_active(false);
+            }
+
+            if (auto fire = gun->find_child_by_name("BOOM_35")) {
+                fire->set_active(false);
+            }
+
+            animation->play("shoot");
+        }
     }
 
     return true;

@@ -25,6 +25,7 @@ public:
     T* create_object(std::string name, GameObject* parent = nullptr) {
         auto* object = new T();
         object->set_name(std::move(name));
+        object->scene_ = this;
         set_parent(object, parent);
         return object;
     }
